@@ -26,6 +26,9 @@ return {
         :find()
     end
 
+    vim.keymap.set('n', '<leader>sp', function()
+      harpoon.ui:toggle_quick_menu(harpoon:list())
+    end, { desc = '[S]earch [P]inned Harpoon' })
     vim.keymap.set('n', '<leader>sh', function()
       toggle_telescope(harpoon:list())
     end, { desc = '[S]earch [H]arpoon' })
@@ -33,9 +36,6 @@ return {
     vim.keymap.set('n', '<leader>a', function()
       harpoon:list():add()
     end, { desc = '[A]dd Harpoon' })
-    vim.keymap.set('n', '<leader>sp', function()
-      harpoon.ui:toggle_quick_menu(harpoon:list())
-    end, { desc = '[S]earch [P]inned Harpoon' })
 
     -- Toggle previous & next buffers stored within Harpoon list
     vim.keymap.set('n', '<leader>pn', function()
