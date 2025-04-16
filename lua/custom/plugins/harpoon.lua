@@ -26,12 +26,12 @@ return {
         :find()
     end
 
-    vim.keymap.set('n', '<leader>sp', function()
+    vim.keymap.set('n', '<leader>ep', function()
       harpoon.ui:toggle_quick_menu(harpoon:list())
-    end, { desc = '[S]earch [P]inned Harpoon' })
-    vim.keymap.set('n', '<leader>sh', function()
+    end, { desc = '[E]dit [P]inned Harpoon' })
+    vim.keymap.set('n', '<leader>sp', function()
       toggle_telescope(harpoon:list())
-    end, { desc = '[S]earch [H]arpoon' })
+    end, { desc = '[S]earch [P]inned Harpoon' })
 
     vim.keymap.set('n', '<leader>a', function()
       harpoon:list():add()
