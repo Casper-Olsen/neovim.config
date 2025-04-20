@@ -31,6 +31,15 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Quickfix
+vim.keymap.set('n', '<M-j>', '<cmd>cnext<CR>', { desc = 'Quickfix Next' })
+vim.keymap.set('n', '<M-k>', '<cmd>cprev<CR>', { desc = 'Quickfix Previous' })
+
+-- Lua
+vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Source file' })
+vim.keymap.set('n', '<leader>x', ':.lua<CR>', { desc = 'Execute line' })
+vim.keymap.set('v', '<leader>x', ':lua<CR>', { desc = 'Execute visual' })
+
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
