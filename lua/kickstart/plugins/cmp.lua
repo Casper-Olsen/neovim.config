@@ -113,6 +113,14 @@ return {
           { name = 'path' },
           { name = 'nvim_lsp_signature_help' },
         },
+
+        -- Setup for vim-dadbod
+        cmp.setup.filetype({ 'sql' }, {
+          sources = {
+            { name = 'vim-dadbod-completion' },
+            { name = 'buffer' },
+          },
+        }),
       }
     end,
   },
