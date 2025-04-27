@@ -81,6 +81,24 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    -- CoreClr
+    -- dap.adapters.coreclr = {
+    --   type = 'executable',
+    --   command = '/usr/local/bin/netcoredbg',
+    --   args = { '--interpreter=vscode' },
+    -- }
+    --
+    -- dap.configurations.cs = {
+    --   {
+    --     type = 'coreclr',
+    --     name = 'launch - netcoredbg',
+    --     request = 'launch',
+    --     program = function()
+    --       return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+    --     end,
+    --   },
+    -- }
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
