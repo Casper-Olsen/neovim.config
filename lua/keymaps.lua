@@ -40,6 +40,9 @@ vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Source f
 vim.keymap.set('n', '<leader>x', ':.lua<CR>', { desc = 'Execute line' })
 vim.keymap.set('v', '<leader>x', ':lua<CR>', { desc = 'Execute visual' })
 
+--
+vim.keymap.set('v', '<leader>va', 'GVgg', { desc = '[V]isual select [A]ll' })
+
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
