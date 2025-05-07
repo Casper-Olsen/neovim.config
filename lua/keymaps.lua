@@ -63,4 +63,18 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Make
+function SetReleaseBuild()
+  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build'
+  print 'Build type set to: Release'
+end
+
+function SetDebugBuild()
+  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Debug && cmake --build build'
+  print 'Build type set to: Debug'
+end
+
+vim.api.nvim_create_user_command('MakeRelease', SetReleaseBuild, {})
+vim.api.nvim_create_user_command('MakeDebug', SetDebugBuild, {})
+
 -- vim: ts=2 sts=2 sw=2 et
