@@ -4,7 +4,7 @@ return {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
     'folke/lazydev.nvim',
-    ft = 'lua',
+    ft = { 'lua', 'cs' },
     opts = {
       library = {
         -- Load luvit types when the `vim.uv` word is found
@@ -257,6 +257,9 @@ return {
               -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
+        },
+        roslyn = {
+          root_dir = require('lspconfig.util').root_pattern('*.sln', '*.csproj'),
         },
       }
 
