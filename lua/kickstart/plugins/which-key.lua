@@ -59,15 +59,17 @@ return {
 
       -- Document existing key chains
       spec = {
-        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-        { '<leader>d', group = '[D]ocument & [D]ebug' },
+        { '<leader>c', group = '[C]ode & [C]opilot', mode = { 'n', 'x' } },
+        { '<leader>d', group = '[D]ocument & [D]ebug & [D]iagnostic' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle and [T]est' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>t', group = '[T]oggle & [T]est' },
+        { '<leader>h', group = 'Git [H]unk & [H]over', mode = { 'n', 'v' } },
         { '<leader>m', group = '[M]arkdown' },
         { '<leader>p', group = '[P]inned' },
+        { '<leader>v', group = '[V]isual' },
+        { '<leader>e', group = '[E]dit' },
       },
     },
   },
