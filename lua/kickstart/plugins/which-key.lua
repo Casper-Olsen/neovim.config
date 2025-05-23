@@ -70,6 +70,7 @@ return {
         { '<leader>p', group = '[P]inned' },
         { '<leader>v', group = '[V]isual' },
         { '<leader>e', group = '[E]dit' },
+        { '<leader>g', group = '[G]it' },
       },
     },
   },
