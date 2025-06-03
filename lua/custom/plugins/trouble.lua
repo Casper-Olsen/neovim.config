@@ -8,7 +8,7 @@ return {
   keys = {
     {
       '<leader>dt',
-      '<cmd>Trouble diagnostics toggle<cr>',
+      '<cmd>Trouble diagnostics toggle filter = { severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN } }<cr>',
       desc = '[D]iagnostics [T]rouble',
     },
     {

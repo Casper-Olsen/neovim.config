@@ -40,7 +40,7 @@ vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Source f
 vim.keymap.set('n', '<leader>x', ':.lua<CR>', { desc = 'Execute line' })
 vim.keymap.set('v', '<leader>x', ':lua<CR>', { desc = 'Execute visual' })
 
---
+-- Select all
 vim.keymap.set('n', '<leader>va', 'GVgg', { desc = '[V]isual select [A]ll' })
 
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
@@ -62,84 +62,3 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
-
--- Make
-function SetReleaseBuild()
-  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build'
-  print 'Build type set to: Release'
-end
-
-function SetDebugBuild()
-  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Debug && cmake --build build'
-  print 'Build type set to: Debug'
-end
-
-vim.api.nvim_create_user_command('MakeRelease', SetReleaseBuild, {})
-vim.api.nvim_create_user_command('MakeDebug', SetDebugBuild, {})
-
--- Dotnet build
-local function find_sln_file(start_path)
-  local uv = vim.loop
-  local function is_sln_file(name)
-    return name:match '%.sln$'
-  end
-
-  local path = vim.fn.expand(start_path or '%:p:h')
-  while path ~= '/' and path ~= '' do
-    local files = vim.fn.readdir(path)
-    for _, filename in ipairs(files) do
-      if is_sln_file(filename) then
-        return path .. '/' .. filename
-      end
-    end
-    path = uv.fs_realpath(path .. '/..') or ''
-  end
-  return nil
-end
-
-local function dotnet_build_sync()
-  local sln = find_sln_file()
-  if not sln then
-    print '❌ No .sln file found'
-    return
-  end
-
-  local output = vim.fn.systemlist { 'dotnet', 'build', sln }
-
-  if vim.v.shell_error ~= 0 then
-    print('❌ dotnet build failed with exit code ' .. vim.v.shell_error)
-  end
-
-  local qf_list = {}
-  local seen = {}
-
-  for _, line in ipairs(output) do
-    local file, lnum, col, type, code, msg = string.match(line, '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$')
-
-    if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
-      local key = table.concat({ file, lnum, col, type, code, msg }, '|')
-      if not seen[key] then
-        seen[key] = true
-        table.insert(qf_list, {
-          filename = vim.fn.fnamemodify(file, ':p'),
-          lnum = tonumber(lnum),
-          col = tonumber(col),
-          text = string.format('%s %s: %s', type:upper(), code, msg),
-          type = type:sub(1, 1):upper(), -- "E" or "W"
-        })
-      end
-    end
-  end
-
-  vim.fn.setqflist(qf_list, 'r')
-
-  if #qf_list > 0 then
-    vim.cmd 'copen'
-  else
-    print '✅ Build succeeded with no errors or warnings.'
-  end
-end
-
-vim.api.nvim_create_user_command('DotnetBuild', dotnet_build_sync, {})
-
--- vim: ts=2 sts=2 sw=2 et
