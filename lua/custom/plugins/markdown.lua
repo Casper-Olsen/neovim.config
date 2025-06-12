@@ -24,7 +24,7 @@ return {
     init = function()
       vim.g.mkdp_filetypes = { 'markdown' }
     end,
-    ft = { 'markdown' },
+    ft = { 'markdown', 'codecompanion' },
     config = function()
       vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<CR>', { desc = '[M]arkdown [P]review' })
     end,
