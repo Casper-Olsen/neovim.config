@@ -11,21 +11,6 @@ return {
       }
     end,
   },
-  -- {
-  --   'CopilotC-Nvim/CopilotChat.nvim',
-  --   branch = 'main',
-  --   dependencies = {
-  --     { 'zbirenbaum/copilot.lua' },
-  --     { 'nvim-lua/plenary.nvim' },
-  --   },
-  --   event = 'InsertEnter',
-  --   cmd = 'CopilotChat',
-  --   config = function()
-  --     require('CopilotChat').setup()
-  --     vim.keymap.set('n', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = 'Copilot Chat' })
-  --     vim.keymap.set('v', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = 'Copilot Chat (visual)' })
-  --   end,
-  -- },
   {
     'olimorris/codecompanion.nvim',
     config = function()
