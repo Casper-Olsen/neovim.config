@@ -17,7 +17,7 @@ return {
       require('codecompanion').setup {
 
         vim.keymap.set({ 'n', 'v' }, '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', { desc = '[C]odeCompanion [C]hat', noremap = true, silent = true }),
-        vim.keymap.set('v', '<leader>cy', '<cmd>CodeCompanionChat Add<CR>', { desc = '[C]odeCompanion Chat [Y]ank (add)', noremap = true, silent = true }),
+        vim.keymap.set('v', '<leader>cy', '<cmd>CodeCompanionChat<CR>', { desc = '[C]odeCompanion Chat [Y]ank (add)', noremap = true, silent = true }),
         vim.keymap.set({ 'n', 'v' }, '<C-a>', '<cmd>CodeCompanionActions<CR>', { desc = '[C]odeCompanion [A]ctions', noremap = true, silent = true }),
 
         -- Expand 'cc' into 'CodeCompanion' in the command line
@@ -29,6 +29,11 @@ return {
           },
           inline = {
             adapter = 'copilot',
+          },
+        },
+        display = {
+          action_palette = {
+            show_default_prompt_library = true,
           },
         },
       }
