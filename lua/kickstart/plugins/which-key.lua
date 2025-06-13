@@ -61,7 +61,7 @@ return {
       spec = {
         { '<leader>c', group = '[C]ode & [C]odeCompanion', mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument & [D]ebug & [D]iagnostic' },
-        { '<leader>r', group = '[R]ename' },
+        { '<leader>r', group = '[R]ename & [R]oslyn' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle & [T]est' },
