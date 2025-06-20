@@ -72,6 +72,7 @@ return {
         { '<leader>e', group = '[E]dit' },
         { '<leader>g', group = '[G]it' },
         { '<leader>q', group = '[Q]uickfix' },
+        { '<leader>y', group = '[Y]ank' },
       },
     },
   },

@@ -62,3 +62,12 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+-- Copy most recent yank ("0) to system clipboard ("+ and "*)
+local function yank_to_clipboard()
+  local yanked = vim.fn.getreg '0'
+  vim.fn.setreg('+', yanked)
+  vim.fn.setreg('*', yanked)
+end
+
+vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = '[Y]ank to [C]lipboard' })
