@@ -70,4 +70,4 @@ local function yank_to_clipboard()
   vim.fn.setreg('*', yanked)
 end
 
-vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = '[Y]ank to [C]lipboard' })
+vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = ' Copy [Y]anked to [C]lipboard' })
