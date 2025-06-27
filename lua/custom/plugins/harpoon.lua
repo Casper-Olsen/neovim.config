@@ -33,9 +33,9 @@ return {
       toggle_telescope(harpoon:list())
     end, { desc = '[S]earch [P]inned Harpoon' })
 
-    vim.keymap.set('n', '<leader>a', function()
+    vim.keymap.set('n', '<leader>pa', function()
       harpoon:list():add()
-    end, { desc = '[A]dd Harpoon' })
+    end, { desc = '[P]inned [A]dd Harpoon' })
 
     -- Toggle previous & next buffers stored within Harpoon list
     vim.keymap.set('n', '<leader>pn', function()
