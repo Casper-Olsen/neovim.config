@@ -57,7 +57,6 @@ function M.build_dll_path()
   local highest_net_folder = M.get_highest_net_folder(bin_debug_path)
   local dll_path = highest_net_folder .. '/' .. project_name .. '.dll'
 
-  print('Launching: ' .. dll_path)
   return dll_path
 end
 
