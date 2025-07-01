@@ -1,15 +1,5 @@
--- debug.lua
---
--- Shows how to use the DAP plugin to debug your code.
---
--- Primarily focused on configuring the debugger for Go, but can
--- be extended to other languages as well. That's why it's called
--- kickstart.nvim and not kitchen-sink.nvim ;)
-
 return {
-  -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
-  -- NOTE: And you can specify dependencies as well
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
@@ -25,7 +15,6 @@ return {
     'leoluz/nvim-dap-go',
   },
   keys = {
-    -- Basic debugging keymaps, feel free to change to your liking!
     {
       '<leader>dr',
       function()
@@ -34,39 +23,46 @@ return {
       desc = 'Debug: Start/Continue',
     },
     {
-      '<F1>',
+      '<leader>de',
       function()
-        require('dap').step_into()
+        require('dap').terminate { all = true }
       end,
-      desc = 'Debug: Step Into',
+      desc = '[D]ebug: [E]nd',
     },
     {
-      '<F2>',
+      '<leader>do',
       function()
         require('dap').step_over()
       end,
-      desc = 'Debug: Step Over',
+      desc = '[D]ebug: Step [O]ver',
     },
     {
-      '<F3>',
+      '<leader>di',
+      function()
+        require('dap').step_into()
+      end,
+      desc = '[D]ebug: Step [I]nto',
+    },
+    {
+      '<S-F11>',
       function()
         require('dap').step_out()
       end,
-      desc = 'Debug: Step Out',
+      desc = '[D]ebug: Step [O]ut',
     },
     {
       '<leader>db',
       function()
         require('dap').toggle_breakpoint()
       end,
-      desc = 'Debug: Toggle Breakpoint',
+      desc = '[D]ebug: Toggle [B]reakpoint',
     },
     {
       '<leader>dB',
       function()
         require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
       end,
-      desc = 'Debug: Set Breakpoint',
+      desc = '[D]ebug: Set [B]reakpoint',
     },
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
     {
@@ -81,23 +77,36 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
-    -- CoreClr
-    -- dap.adapters.coreclr = {
-    --   type = 'executable',
-    --   command = '/usr/local/bin/netcoredbg',
-    --   args = { '--interpreter=vscode' },
-    -- }
+    local ok, dotnet = pcall(require, 'custom.dap-dotnet')
+    if not ok then
+      print 'Failed to load custom.nvim-dap-dotnet'
+    else
+      print 'Loaded custom.nvim-dap-dotnet successfully'
+    end
+
+    local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'
+
+    local netcoredbg_adapter = {
+      type = 'executable',
+      command = mason_path,
+      args = { '--interpreter=vscode' },
+    }
+    -- Needed for normal debugging
+    dap.adapters.netcoredbg = netcoredbg_adapter
     --
-    -- dap.configurations.cs = {
-    --   {
-    --     type = 'coreclr',
-    --     name = 'launch - netcoredbg',
-    --     request = 'launch',
-    --     program = function()
-    --       return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
-    --     end,
-    --   },
-    -- }
+    -- Needed for unit test debugging
+    dap.adapters.coreclr = netcoredbg_adapter
+
+    dap.configurations.cs = {
+      {
+        type = 'coreclr',
+        name = 'launch - netcoredbg',
+        request = 'launch',
+        program = function()
+          return dotnet.build_dll_path()
+        end,
+      },
+    }
 
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
@@ -114,6 +123,7 @@ return {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
         'cppdbg',
+        'netcoredbg',
       },
     }
 

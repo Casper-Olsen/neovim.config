@@ -14,21 +14,19 @@ return {
   vim.cmd "let test#strategy = 'vimux'",
 
   -- Not tested if it works yet
-  vim.g['test#custom_strategies']
-    == {
-      dap_debug = function(cmd)
-        local dap = require 'dap'
-        dap.run {
-          type = 'cppdbg',
-          request = 'launch',
-          name = 'Debug Test',
-          program = cmd[2],
-          args = { unpack(cmd, 3) },
-          cwd = vim.fn.getcwd(),
-          stopOnEntry = false,
-        }
-      end,
-    },
-
-  vim.api.nvim_set_keymap('n', '<leader>tdn', ':TestNearest -strategy=dap_debug<CR>', { noremap = true, silent = true }),
+  -- vim.g['test#custom_strategies']
+  --   == {
+  --     dap_debug = function(cmd)
+  --       local dap = require 'dap'
+  --       dap.run {
+  --         type = 'cppdbg',
+  --         request = 'launch',
+  --         name = 'Debug Test',
+  --         program = cmd[2],
+  --         args = { unpack(cmd, 3) },
+  --         cwd = vim.fn.getcwd(),
+  --         stopOnEntry = false,
+  --       }
+  --     end,
+  --   },
 }
