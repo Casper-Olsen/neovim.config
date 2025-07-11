@@ -26,7 +26,7 @@ return {
         :find()
     end
 
-    vim.keymap.set('n', '<leader>ep', function()
+    vim.keymap.set('n', '<leader>e', function()
       harpoon.ui:toggle_quick_menu(harpoon:list())
     end, { desc = '[E]dit [P]inned Harpoon' })
     vim.keymap.set('n', '<leader>sp', function()

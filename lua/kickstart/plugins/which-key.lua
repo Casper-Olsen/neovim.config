@@ -69,7 +69,7 @@ return {
         { '<leader>m', group = '[M]arkdown' },
         { '<leader>p', group = '[P]inned' },
         { '<leader>v', group = '[V]isual' },
-        { '<leader>e', group = '[E]dit' },
+        { '<leader>e', group = '[E]dit pinned' },
         { '<leader>g', group = '[G]it' },
         { '<leader>q', group = '[Q]uickfix' },
         { '<leader>y', group = '[Y]ank' },
