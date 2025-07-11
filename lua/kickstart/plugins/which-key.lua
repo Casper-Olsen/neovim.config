@@ -73,6 +73,7 @@ return {
         { '<leader>g', group = '[G]it' },
         { '<leader>q', group = '[Q]uickfix' },
         { '<leader>y', group = '[Y]ank' },
+        { '<leader>a', group = '[A]lternate file' },
       },
     },
   },
