@@ -74,6 +74,7 @@ return {
         { '<leader>q', group = '[Q]uickfix' },
         { '<leader>y', group = '[Y]ank' },
         { '<leader>a', group = '[A]lternate file' },
+        { '<leader>u', group = '[U]ndo' },
       },
     },
   },
