@@ -261,7 +261,7 @@ return {
           },
         },
         roslyn = {
-          root_dir = require('lspconfig.util').root_pattern('*.sln', '*.csproj'),
+          root_dir = require('lspconfig.util').root_pattern '*.sln',
         },
       }
 
