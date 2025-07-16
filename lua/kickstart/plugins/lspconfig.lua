@@ -260,9 +260,6 @@ return {
             },
           },
         },
-        roslyn = {
-          root_dir = require('lspconfig.util').root_pattern '*.sln',
-        },
       }
 
       -- Ensure the servers and tools above are installed
