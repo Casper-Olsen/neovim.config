@@ -8,9 +8,12 @@ return {
   keys = {
     {
       '<leader>dt',
-      '<cmd>Trouble diagnostics toggle filter = { severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN } }<cr>',
-      desc = '[D]iagnostics [T]rouble',
+      function()
+        vim.cmd [[Trouble diagnostics toggle filter = { severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN }, filename_not = { "/tmp/", ".nuget" } }]]
+      end,
+      desc = '[D]iagnostics [T]rouble (excluding externals)',
     },
+
     {
       '<leader>dT',
       '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
