@@ -11,7 +11,7 @@ return {
       function()
         vim.cmd [[Trouble diagnostics toggle filter = { severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN }, filename_not = { "/tmp/", ".nuget" } }]]
       end,
-      desc = '[D]iagnostics [T]rouble (excluding externals)',
+      desc = '[D]iagnostics [T]rouble',
     },
 
     {
