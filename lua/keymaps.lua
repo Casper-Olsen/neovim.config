@@ -35,11 +35,6 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 vim.keymap.set('n', '<M-j>', '<cmd>cnext<CR>', { desc = 'Quickfix Next' })
 vim.keymap.set('n', '<M-k>', '<cmd>cprev<CR>', { desc = 'Quickfix Previous' })
 
--- Lua
-vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Source file' })
-vim.keymap.set('n', '<leader>x', ':.lua<CR>', { desc = 'Execute line' })
-vim.keymap.set('v', '<leader>x', ':lua<CR>', { desc = 'Execute visual' })
-
 -- Select all
 vim.keymap.set('n', '<leader>va', 'GVgg', { desc = '[V]isual select [A]ll' })
 
