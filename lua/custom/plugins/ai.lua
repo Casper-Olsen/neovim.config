@@ -26,10 +26,16 @@ return {
 
         strategies = {
           chat = {
-            adapter = 'copilot',
+            adapter = {
+              name = 'copilot',
+              model = 'claude-3.7-sonnet',
+            },
           },
           inline = {
-            adapter = 'copilot',
+            adapter = {
+              name = 'copilot',
+              model = 'claude-3.7-sonnet',
+            },
           },
         },
         display = {
