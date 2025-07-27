@@ -1,12 +1,12 @@
 -- Make
 function SetReleaseBuild()
-  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build'
-  print 'Build type set to: Release'
+  vim.opt.makeprg = 'cmake --preset=release && cmake --build --preset=release'
+  print 'Build type set to: Release with vcpkg'
 end
 
 function SetDebugBuild()
-  vim.opt.makeprg = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Debug && cmake --build build'
-  print 'Build type set to: Debug'
+  vim.opt.makeprg = 'cmake --preset=debug && cmake --build --preset=debug'
+  print 'Build type set to: Debug with vcpkg'
 end
 
 vim.api.nvim_create_user_command('MakeRelease', SetReleaseBuild, {})
