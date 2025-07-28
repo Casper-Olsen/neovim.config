@@ -224,7 +224,18 @@ return {
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {
-          cmd = { 'clangd', '--offset-encoding=utf-16' },
+          cmd = {
+            'clangd',
+            '--offset-encoding=utf-16',
+            '--background-index',
+            '--clang-tidy',
+            '--completion-style=detailed',
+            '--suggest-missing-includes',
+            '--cross-file-rename',
+          },
+          init_options = {
+            fallbackFlags = { '-std=c++23' },
+          },
         },
         ts_ls = {
           settings = {
