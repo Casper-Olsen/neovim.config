@@ -68,3 +68,6 @@ vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = ' Copy [Y]anked to
 
 -- Alternate file
 vim.keymap.set('n', '<leader>a', '<C-^>')
+
+-- Delete to black hole register
+vim.keymap.set('n', '<leader>dd', '"_dd')
