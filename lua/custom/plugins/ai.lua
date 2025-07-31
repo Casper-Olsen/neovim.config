@@ -8,8 +8,17 @@ return {
       require('copilot').setup {
         suggestion = { enabled = false },
         panel = { enabled = false },
+        auto_trigger = { enabled = true },
         -- debug = true
       }
+    end,
+  },
+  {
+    'zbirenbaum/copilot-cmp',
+    config = function()
+      require('copilot_cmp').setup()
+
+      vim.keymap.set({ 'n' }, '<leader>ct', '<cmd>Copilot toggle<CR>', { desc = '[C]opilot [T]oggle', noremap = true, silent = true })
     end,
   },
   {
