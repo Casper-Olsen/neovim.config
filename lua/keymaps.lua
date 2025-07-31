@@ -38,12 +38,6 @@ vim.keymap.set('n', '<M-k>', '<cmd>cprev<CR>', { desc = 'Quickfix Previous' })
 -- Select all
 vim.keymap.set('n', '<leader>va', 'GVgg', { desc = '[V]isual select [A]ll' })
 
--- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
--- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
--- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
--- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
--- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
-
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -64,10 +58,10 @@ local function yank_to_clipboard()
   vim.fn.setreg('+', yanked)
 end
 
-vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = ' Copy [Y]anked to [C]lipboard' })
+vim.keymap.set('n', '<leader>yc', yank_to_clipboard, { desc = 'Copy [Y]anked to [C]lipboard' })
 
 -- Alternate file
-vim.keymap.set('n', '<leader>a', '<C-^>')
+vim.keymap.set('n', '<leader>a', '<C-^>', { desc = '[A]lternate file' })
 
--- Delete to black hole register
-vim.keymap.set('n', '<leader>dd', '"_dd')
+-- Delete line to black hole register
+vim.keymap.set('n', '<leader>dd', '"_dd', { desc = '[D]elete line to black hole register' })
