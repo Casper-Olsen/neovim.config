@@ -10,7 +10,8 @@ return {
         auto_trigger = { enabled = false },
       }
     end,
-    vim.keymap.set({ 'n' }, '<leader>ct', '<cmd>Copilot toggle<CR>', { desc = '[C]opilot [T]oggle', noremap = true, silent = true }),
+    vim.keymap.set({ 'n' }, '<leader>ce', '<cmd>Copilot enable<CR>', { desc = '[C]opilot [E]nable', noremap = true, silent = true }),
+    vim.keymap.set({ 'n' }, '<leader>cd', '<cmd>Copilot disable<CR>', { desc = '[C]opilot [D]isable', noremap = true, silent = true }),
   },
   {
     'zbirenbaum/copilot-cmp',
