@@ -31,67 +31,97 @@ local function find_sln_file(start_path)
   return nil
 end
 
-local function dotnet_build_sync()
+local function dotnet_build_async()
   local sln = find_sln_file()
   if not sln then
     print '❌ No .sln file found'
     return
-  end
-
-  local output = vim.fn.systemlist { 'dotnet', 'build', sln }
-
-  if vim.v.shell_error ~= 0 then
-    print('❌ dotnet build failed with exit code ' .. vim.v.shell_error)
   end
 
   local qf_list = {}
   local seen = {}
 
-  for _, line in ipairs(output) do
-    local file, lnum, col, type, code, msg = string.match(line, '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$')
+  vim.fn.setqflist({}, 'r') -- clear quickfix first
 
-    if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
-      local key = table.concat({ file, lnum, col, type, code, msg }, '|')
-      if not seen[key] then
-        seen[key] = true
-        table.insert(qf_list, {
-          filename = vim.fn.fnamemodify(file, ':p'),
-          lnum = tonumber(lnum),
-          col = tonumber(col),
-          text = string.format('%s %s: %s', type:upper(), code, msg),
-          type = type:sub(1, 1):upper(), -- "E" or "W"
-        })
+  vim.fn.jobstart({ 'dotnet', 'build', sln }, {
+    stdout_buffered = true,
+
+    on_stdout = function(_, data)
+      if not data then
+        return
       end
-    end
-  end
 
-  vim.fn.setqflist(qf_list, 'r')
+      for _, line in ipairs(data) do
+        local file, lnum, col, type, code, msg = string.match(line, '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$')
 
-  if #qf_list > 0 then
-    vim.cmd 'Trouble quickfix'
-  else
-    print '✅ Build succeeded with no errors or warnings.'
-  end
+        if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
+          local key = table.concat({ file, lnum, col, type, code, msg }, '|')
+          if not seen[key] then
+            seen[key] = true
+            table.insert(qf_list, {
+              filename = vim.fn.fnamemodify(file, ':p'),
+              lnum = tonumber(lnum),
+              col = tonumber(col),
+              text = string.format('%s %s: %s', type:upper(), code, msg),
+              type = type:sub(1, 1):upper(), -- "E" or "W"
+            })
+          end
+        end
+      end
+    end,
+
+    on_exit = function(_, code)
+      if #qf_list > 0 then
+        vim.fn.setqflist(qf_list, 'r')
+        vim.cmd 'Trouble quickfix' -- or use ':copen' if you don't use Trouble
+      end
+
+      if code == 0 and #qf_list == 0 then
+        print '✅ Build succeeded with no errors or warnings.'
+      elseif code ~= 0 then
+        print('❌ Build failed with exit code ' .. code)
+      end
+    end,
+  })
 end
 
-local function dotnet_restore_sync()
+local function dotnet_restore_async()
   local sln = find_sln_file()
   if not sln then
     print '❌ No .sln file found'
     return
   end
 
-  local output = vim.fn.systemlist { 'dotnet', 'restore', sln }
+  local output_lines = {}
 
-  if vim.v.shell_error ~= 0 then
-    print('❌ dotnet restore failed with exit code ' .. vim.v.shell_error)
-    for _, line in ipairs(output) do
-      print(line)
-    end
-  else
-    print '✅ dotnet restore succeeded.'
-  end
+  vim.fn.jobstart({ 'dotnet', 'restore', sln }, {
+    stdout_buffered = true,
+    stderr_buffered = true,
+
+    on_stdout = function(_, data)
+      if data then
+        vim.list_extend(output_lines, data)
+      end
+    end,
+
+    on_stderr = function(_, data)
+      if data then
+        vim.list_extend(output_lines, data)
+      end
+    end,
+
+    on_exit = function(_, code)
+      if code == 0 then
+        print '✅ Restore succeeded.'
+      else
+        print('❌ Restore failed with exit code ' .. code)
+        for _, line in ipairs(output_lines) do
+          print(line)
+        end
+      end
+    end,
+  })
 end
 
-vim.api.nvim_create_user_command('DotnetBuild', dotnet_build_sync, {})
-vim.api.nvim_create_user_command('DotnetRestore', dotnet_restore_sync, {})
+vim.api.nvim_create_user_command('DotnetBuildAsync', dotnet_build_async, {})
+vim.api.nvim_create_user_command('DotnetRestoreAsync', dotnet_restore_async, {})

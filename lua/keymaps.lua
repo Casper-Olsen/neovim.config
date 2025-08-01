@@ -69,5 +69,5 @@ vim.keymap.set('n', '<leader>dd', '"_dd', { desc = '[D]elete line to black hole 
 -- Build
 vim.keymap.set('n', '<leader>bd', function()
   vim.cmd 'echo "🛠️ dotnet build - Running"'
-  vim.cmd 'DotnetBuild'
+  vim.cmd 'DotnetBuildAsync'
 end, { desc = '[B]uild [D]otnet' })
