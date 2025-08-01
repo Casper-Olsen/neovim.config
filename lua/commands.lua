@@ -12,7 +12,7 @@ end
 vim.api.nvim_create_user_command('MakeRelease', SetReleaseBuild, {})
 vim.api.nvim_create_user_command('MakeDebug', SetDebugBuild, {})
 
--- .NET
+-- .NET build and restore
 local function find_sln_file(start_path)
   local function is_sln_file(name)
     return name:match '%.sln$'

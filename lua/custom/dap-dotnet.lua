@@ -60,4 +60,67 @@ function M.build_dll_path()
   return dll_path
 end
 
+local function find_nearest_xunit_test()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- Regex to detect [Fact] or [Theory]
+  local test_attr_pattern = '^%s*%[Fact%]%s*$'
+  local theory_attr_pattern = '^%s*%[Theory%]%s*$'
+
+  -- Matches 'public' method declarations and captures the method name.
+  -- Allows modifiers like 'async' and return types before the method name.
+  local method_pattern = '^%s*public%s+.*%s+([%w_]+)%s*%('
+
+  -- We'll scan upward from cursor_line to 1
+  for line_num = cursor_line, 1, -1 do
+    local line = vim.api.nvim_buf_get_lines(bufnr, line_num - 1, line_num, false)[1]
+
+    if line and (line:match(test_attr_pattern) or line:match(theory_attr_pattern)) then
+      -- Found test attribute, now find method signature below it (within next ~5 lines)
+      for look_down = line_num + 1, math.min(line_num + 5, vim.api.nvim_buf_line_count(bufnr)) do
+        local next_line = vim.api.nvim_buf_get_lines(bufnr, look_down - 1, look_down, false)[1]
+        if next_line then
+          local method_name = next_line:match(method_pattern)
+          if method_name then
+            return method_name
+          end
+        end
+      end
+    end
+  end
+
+  return nil -- not found
+end
+
+local dap = require 'dap'
+local function debug_nearest_test()
+  local test_name = find_nearest_xunit_test()
+  if not test_name then
+    print 'No test found nearby'
+    return
+  end
+
+  local test_dll = M.build_dll_path()
+  if vim.fn.filereadable(test_dll) == 0 then
+    print('Test DLL not found: ' .. test_dll)
+    return
+  end
+
+  print('Debugging test:', test_name)
+  print('Using test DLL:', test_dll)
+
+  dap.run {
+    type = 'coreclr',
+    name = 'Debug Nearest Test: ' .. test_name,
+    request = 'launch',
+    program = test_dll,
+    args = { '--filter', 'FullyQualifiedName=' .. test_name },
+    cwd = vim.fn.getcwd(),
+    stopAtEntry = true,
+  }
+end
+
+vim.keymap.set('n', '<leader>dt', debug_nearest_test, { desc = '[D]ebug [T]est: Nearest test method' })
+
 return M
