@@ -36,15 +36,15 @@ return {
           chat = {
             adapter = {
               name = 'copilot',
-              model = 'gpt-4.1',
-              -- model = 'claude-3.7-sonnet',
+              -- model = 'gpt-4.1',
+              model = 'claude-3.7-sonnet',
             },
           },
           inline = {
             adapter = {
               name = 'copilot',
-              model = 'gpt-4.1',
-              -- model = 'claude-3.7-sonnet',
+              -- model = 'gpt-4.1',
+              model = 'claude-3.7-sonnet',
             },
           },
         },
