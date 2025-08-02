@@ -1,5 +1,19 @@
 local M = {}
 
+local dap = require 'dap'
+
+-- Wrap dap.run only once to add logging
+if not dap._original_run then
+  dap._original_run = dap.run
+  dap.run = function(config)
+    print '[dap.run] called with:'
+    for k, v in pairs(config) do
+      print('  ' .. k .. ':', type(v) == 'table' and vim.inspect(v) or tostring(v))
+    end
+    dap._original_run(config)
+  end
+end
+
 -- Find the root directory of a .NET project by searching for .csproj files
 function M.find_project_root_by_csproj(start_path)
   local Path = require 'plenary.path'
@@ -60,7 +74,7 @@ function M.build_dll_path()
   return dll_path
 end
 
-local function find_nearest_xunit_test()
+function M.find_nearest_xunit_test()
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -92,35 +106,5 @@ local function find_nearest_xunit_test()
 
   return nil -- not found
 end
-
-local dap = require 'dap'
-local function debug_nearest_test()
-  local test_name = find_nearest_xunit_test()
-  if not test_name then
-    print 'No test found nearby'
-    return
-  end
-
-  local test_dll = M.build_dll_path()
-  if vim.fn.filereadable(test_dll) == 0 then
-    print('Test DLL not found: ' .. test_dll)
-    return
-  end
-
-  print('Debugging test:', test_name)
-  print('Using test DLL:', test_dll)
-
-  dap.run {
-    type = 'coreclr',
-    name = 'Debug Nearest Test: ' .. test_name,
-    request = 'launch',
-    program = test_dll,
-    args = { '--filter', 'FullyQualifiedName=' .. test_name },
-    cwd = vim.fn.getcwd(),
-    stopAtEntry = true,
-  }
-end
-
-vim.keymap.set('n', '<leader>dt', debug_nearest_test, { desc = '[D]ebug [T]est: Nearest test method' })
 
 return M
