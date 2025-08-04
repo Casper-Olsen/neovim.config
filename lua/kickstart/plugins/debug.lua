@@ -105,7 +105,7 @@ return {
         program = function()
           return dotnet.build_dll_path()
         end,
-        stopAtEntry = true,
+        stopAtEntry = false,
       },
       {
         type = 'coreclr',
@@ -124,7 +124,7 @@ return {
             return {}
           end
         end,
-        stopAtEntry = true,
+        stopAtEntry = false,
       },
     }
     require('mason-nvim-dap').setup {
