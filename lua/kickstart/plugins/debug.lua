@@ -30,50 +30,6 @@ return {
       desc = '[D]ebug: [E]nd',
     },
     {
-      '<leader>dx',
-      function()
-        local ok, vim_test = pcall(require, 'vim-test')
-        if not ok then
-          print '[dap] vim-test not found, cannot debug nearest test'
-          return
-        end
-
-        local dap = require 'dap'
-        local test_cmd = vim_test.get_test_command 'nearest'
-
-        if not test_cmd or test_cmd == '' then
-          print '[dap] No test command found for nearest test'
-          return
-        end
-
-        -- Extract program (DLL path) and filter args
-        local program = test_cmd:match 'dotnet test%s+"?([^%s"]+)"?'
-        local filter = test_cmd:match '%-%-filter%s+("?[^%s"]+"?)'
-
-        if not program then
-          print '[dap] Could not parse test DLL from vim-test command'
-          return
-        end
-
-        local args = {}
-        if filter then
-          -- Remove quotes if any
-          filter = filter:gsub('^"(.*)"$', '%1')
-          args = { '--filter', filter }
-        end
-
-        dap.run {
-          type = 'coreclr',
-          name = 'Debug Nearest Test',
-          request = 'launch',
-          program = program,
-          args = args,
-          stopAtEntry = true,
-        }
-      end,
-      desc = '[D]ebug Nearest Test',
-    },
-    {
       '<leader>do',
       function()
         require('dap').step_over()
@@ -144,30 +100,25 @@ return {
     dap.configurations.cs = {
       {
         type = 'coreclr',
-        name = 'launch - netcoredbg',
+        name = 'NetCoreDbg - Debug',
         request = 'launch',
         program = function()
           return dotnet.build_dll_path()
         end,
+        stopAtEntry = true,
       },
       {
         type = 'coreclr',
-        name = 'launch - Debug Nearest Test',
+        name = 'NetCoreDbg - Debug nearest xUnit Test',
         request = 'launch',
         program = function()
-          local okay, test_dll = pcall(dotnet.build_dll_path)
-          if not okay then
-            print('[dap] Error getting test DLL path:', test_dll)
-            return nil
-          end
-          print('[dap] Debug test DLL:', test_dll)
-          return test_dll
+          return dotnet.build_dll_path()
         end,
         args = function()
           local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
           if test_name then
             print('[dap] Running test:', test_name)
-            return { '--filter', 'FullyQualifiedName=' .. test_name }
+            return { '--filter', 'DisplayName~' .. test_name }
           else
             print '[dap] No test name found, running all tests'
             return {}
@@ -176,7 +127,6 @@ return {
         stopAtEntry = true,
       },
     }
-
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
