@@ -89,7 +89,9 @@ return {
     local netcoredbg_adapter = {
       type = 'executable',
       command = mason_path,
-      args = { '--interpreter=vscode' },
+      args = {
+        '--interpreter=vscode',
+      },
     }
     -- Needed for normal debugging
     dap.adapters.netcoredbg = netcoredbg_adapter
@@ -111,19 +113,26 @@ return {
         type = 'coreclr',
         name = 'NetCoreDbg - Debug nearest xUnit Test',
         request = 'launch',
-        program = function()
-          return dotnet.build_dll_path()
-        end,
+        program = 'dotnet',
         args = function()
+          local dllPath = dotnet.build_dll_path()
           local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
           if test_name then
             print('[dap] Running test:', test_name)
-            return { '--filter', 'DisplayName~' .. test_name }
+            print('[dap] dllPath:', dllPath)
+            return {
+              'vstest',
+              dllPath,
+              '--TestCaseFilter:FullyQualifiedName~' .. test_name,
+            }
           else
             print '[dap] No test name found, running all tests'
-            return {}
+            return { 'vstest', dllPath }
           end
         end,
+        env = { VSTEST_HOST_DEBUG = '1' },
+        cwd = '${workspaceFolder}',
+        console = 'integratedTerminal',
         stopAtEntry = false,
       },
     }
@@ -192,5 +201,46 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+
+    -- Debug attach for C#
+    local handler_id = 'auto_attach_testhost'
+    local already_attached = false
+
+    local function is_cs_debug_session(session)
+      return session and (session.config.type == 'coreclr' or session.config.name:match 'NetCoreDbg')
+    end
+
+    dap.listeners.after.event_terminated[handler_id] = function(session)
+      if is_cs_debug_session(session) then
+        already_attached = false
+      end
+    end
+
+    dap.listeners.after.event_exited[handler_id] = function(session)
+      if is_cs_debug_session(session) then
+        already_attached = false
+      end
+    end
+
+    dap.listeners.after.event_output[handler_id] = function(session, body)
+      if not is_cs_debug_session(session) or already_attached or body.category ~= 'stdout' then
+        return
+      end
+
+      local pid = body.output and body.output:match 'Process Id:%s*(%d+), Name:'
+      if pid then
+        already_attached = true
+        print('[DAP] Found testhost PID: ' .. pid)
+        vim.defer_fn(function()
+          dap.run {
+            type = 'coreclr',
+            request = 'attach',
+            name = 'Attach to testhost',
+            processId = tonumber(pid),
+            cwd = vim.fn.getcwd(),
+          }
+        end, 500)
+      end
+    end
   end,
 }
