@@ -130,7 +130,8 @@ return {
             return { 'vstest', dllPath }
           end
         end,
-        env = { VSTEST_HOST_DEBUG = '1' },
+        env = { VSTEST_HOST_DEBUG = '1', DOTNET_Configuration = 'Debug' },
+        -- Add this line
         cwd = '${workspaceFolder}',
         console = 'integratedTerminal',
         stopAtEntry = false,
@@ -222,6 +223,12 @@ return {
       end
     end
 
+    dap.listeners.after.event_breakpoint[handler_id] = function(session, body)
+      if is_cs_debug_session(session) and body.reason == 'changed' then
+        print('[DAP] Breakpoint status changed: ' .. vim.inspect(body))
+      end
+    end
+
     dap.listeners.after.event_output[handler_id] = function(session, body)
       if not is_cs_debug_session(session) or already_attached or body.category ~= 'stdout' then
         return
@@ -232,14 +239,22 @@ return {
         already_attached = true
         print('[DAP] Found testhost PID: ' .. pid)
         vim.defer_fn(function()
+          print('[DAP] Attempting to attach to process: ' .. pid)
           dap.run {
             type = 'coreclr',
             request = 'attach',
             name = 'Attach to testhost',
             processId = tonumber(pid),
             cwd = vim.fn.getcwd(),
+            justMyCode = false,
+            sourceFileMap = {
+              ['*'] = '${workspaceFolder}',
+            },
+            sourceLinkOptions = {
+              timeoutSeconds = 30,
+            },
           }
-        end, 500)
+        end, 2500)
       end
     end
   end,
