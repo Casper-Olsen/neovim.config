@@ -13,6 +13,19 @@ return {
     },
   },
   {
+    -- Show function signature when typing
+    'ray-x/lsp_signature.nvim',
+    event = 'InsertEnter',
+    opts = {
+      bind = true,
+      handler_opts = {
+        border = 'rounded',
+      },
+      hint_enable = false,
+      hi_parameter = 'LspSignature',
+    },
+  },
+  {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
