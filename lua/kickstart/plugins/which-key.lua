@@ -65,7 +65,7 @@ return {
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle & [T]est' },
-        { '<leader>h', group = 'Git [H]unk & [H]over', mode = { 'n', 'v' } },
+        { '<leader>h', group = '[H]over', mode = { 'n', 'v' } },
         { '<leader>m', group = '[M]arkdown' },
         { '<leader>p', group = '[P]inned' },
         { '<leader>v', group = '[V]isual' },
