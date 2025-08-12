@@ -88,8 +88,12 @@ return {
           -- or a suggestion from your LSP for this to activate.
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
+          -- map('<leader>hi', function()
+          --   vim.lsp.buf.hover()
+          -- end, '[H]over [I]nfo')
+
           map('<leader>hi', function()
-            vim.lsp.buf.hover()
+            vim.lsp.buf.signature_help()
           end, '[H]over [I]nfo')
 
           ---@param client vim.lsp.Client
