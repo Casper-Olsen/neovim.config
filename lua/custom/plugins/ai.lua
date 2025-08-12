@@ -21,7 +21,6 @@ return {
   },
   {
     'olimorris/codecompanion.nvim',
-    version = 'v16.3.0',
     config = function()
       require('codecompanion').setup {
 

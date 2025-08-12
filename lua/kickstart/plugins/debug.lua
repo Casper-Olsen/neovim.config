@@ -223,11 +223,11 @@ return {
       end
     end
 
-    dap.listeners.after.event_breakpoint[handler_id] = function(session, body)
-      if is_cs_debug_session(session) and body.reason == 'changed' then
-        print('[DAP] Breakpoint status changed: ' .. vim.inspect(body))
-      end
-    end
+    -- dap.listeners.after.event_breakpoint[handler_id] = function(session, body)
+    --   if is_cs_debug_session(session) and body.reason == 'changed' then
+    --     print('[DAP] Breakpoint status changed: ' .. vim.inspect(body))
+    --   end
+    -- end
 
     dap.listeners.after.event_output[handler_id] = function(session, body)
       if not is_cs_debug_session(session) or already_attached or body.category ~= 'stdout' then
