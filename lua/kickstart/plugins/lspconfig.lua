@@ -105,10 +105,6 @@ return {
             vim.lsp.buf.hover()
           end, '[H]over [I]nfo')
 
-          map('<leader>hs', function()
-            vim.lsp.buf.signature_help()
-          end, '[H]over [S]ignature')
-
           ---@param client vim.lsp.Client
           ---@param method vim.lsp.protocol.Method
           ---@param bufnr? integer some lsp support methods only in specific files
