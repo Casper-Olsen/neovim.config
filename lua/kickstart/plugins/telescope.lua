@@ -9,7 +9,11 @@ return {
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.x',
+
+    -- NOTE: Move to specific version again when https://github.com/nvim-telescope/telescope.nvim/issues/3439 has been released
+    -- branch = '0.1.x',
+    branch = 'master',
+
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
