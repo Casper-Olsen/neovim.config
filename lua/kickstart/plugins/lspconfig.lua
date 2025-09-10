@@ -103,7 +103,8 @@ return {
 
           -- Hover information for symbol (vim.lsp.buf.hover()) -> K to show, KK to show and focus
 
-          map('<leader>hs', function()
+          -- Hover signature - Use with L or LL (to focus signature)
+          map('L', function()
             vim.lsp.buf.signature_help()
           end, '[H]over [S]ignature')
 
