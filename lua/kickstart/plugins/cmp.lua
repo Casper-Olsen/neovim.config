@@ -116,6 +116,7 @@ return {
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'nvim_lsp_signature_help' }, -- Not 100% sure if this is needed to make hover signature work
         },
 
         -- Setup for vim-dadbod
