@@ -101,9 +101,11 @@ return {
           -- or a suggestion from your LSP for this to activate.
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
-          map('<leader>hi', function()
-            vim.lsp.buf.hover()
-          end, '[H]over [I]nfo')
+          -- Hover information for symbol (vim.lsp.buf.hover()) -> K to show, KK to show and focus
+
+          map('<leader>hs', function()
+            vim.lsp.buf.signature_help()
+          end, '[H]over [S]ignature')
 
           ---@param client vim.lsp.Client
           ---@param method vim.lsp.protocol.Method
