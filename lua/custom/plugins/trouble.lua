@@ -3,6 +3,12 @@ return {
   opts = {
     focus = false,
     auto_close = false,
+    auto_preview = false,
+    preview = {
+      type = 'main',
+      -- Preview will always be a real loaded buffer
+      scratch = false,
+    },
   },
   cmd = 'Trouble',
   keys = {

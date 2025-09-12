@@ -73,12 +73,16 @@ local function dotnet_build_async()
     on_exit = function(_, code)
       if #qf_list > 0 then
         vim.fn.setqflist(qf_list, 'r')
-        vim.cmd 'Trouble quickfix' -- or use ':copen' if you don't use Trouble
+        vim.cmd 'Trouble quickfix'
       end
 
-      if code == 0 and #qf_list == 0 then
-        print '✅ Build succeeded with no errors or warnings.'
-      elseif code ~= 0 then
+      if code == 0 then
+        if #qf_list == 0 then
+          print '✅ Build succeeded with no errors or warnings.'
+        else
+          print '✅ Build succeeded with warnings.'
+        end
+      else
         print('❌ Build failed with exit code ' .. code)
       end
     end,
