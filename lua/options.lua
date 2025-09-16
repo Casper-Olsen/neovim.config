@@ -64,4 +64,10 @@ vim.o.winborder = 'rounded'
 -- Highlight color for lsp_signature.nvim (hi_parameter)
 vim.api.nvim_set_hl(0, 'LspSignature', { fg = '#E0E0E0', bg = '#235955', bold = true })
 
+-- Sync buffers automatically
+vim.opt.autoread = true
+
+-- No swapfiles
+vim.opt.swapfile = false
+
 -- vim: ts=2 sts=2 sw=2 et
