@@ -118,20 +118,16 @@ return {
           local dllPath = dotnet.build_dll_path()
           local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
           if test_name then
-            print('[dap] Running test:', test_name)
-            print('[dap] dllPath:', dllPath)
             return {
               'vstest',
               dllPath,
               '--TestCaseFilter:FullyQualifiedName~' .. test_name,
             }
           else
-            print '[dap] No test name found, running all tests'
             return { 'vstest', dllPath }
           end
         end,
         env = { VSTEST_HOST_DEBUG = '1', DOTNET_Configuration = 'Debug' },
-        -- Add this line
         cwd = '${workspaceFolder}',
         console = 'integratedTerminal',
         stopAtEntry = false,
