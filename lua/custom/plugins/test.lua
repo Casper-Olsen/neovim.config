@@ -51,9 +51,9 @@ return {
     dependencies = { 'preservim/vimux' },
 
     config = function()
-      vim.keymap.set('n', '<leader>te', function()
+      vim.keymap.set('n', '<leader>tte', function()
         vim.cmd 'TestNearest -strategy=sudo_vimux'
-      end, { desc = '[T]est [N]earest [E]levated' })
+      end, { desc = '[T]est Nearest [T]mux [E]levated' })
 
       vim.keymap.set('n', '<leader>ttn', '<cmd>TestNearest<CR>', { desc = '[T]est [T]mux [N]earest' })
       vim.keymap.set('n', '<leader>ttf', '<cmd>TestFile<CR>', { desc = '[T]est [T]mux [F]ile' })
