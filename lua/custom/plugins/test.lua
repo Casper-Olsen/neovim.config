@@ -1,29 +1,68 @@
 return {
-  'vim-test/vim-test',
-  dependencies = { 'preservim/vimux' },
+  {
+    'nvim-neotest/neotest',
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-treesitter/nvim-treesitter',
+      'Issafalcon/neotest-dotnet',
+    },
+    config = function()
+      ---@diagnostic disable-next-line: missing-fields
+      require('neotest').setup {
+        adapters = {
+          require 'neotest-dotnet' {
+            dap = {
+              args = { justMyCode = false },
+              adapter_name = 'netcoredbg',
+            },
+          },
+        },
+      }
 
-  config = function()
-    vim.keymap.set('n', '<leader>te', function()
-      vim.cmd 'TestNearest -strategy=sudo_vimux'
-    end, { desc = '[T]est [N]earest [E]levated' })
+      vim.keymap.set('n', '<leader>tn', function()
+        require('neotest').run.run()
+      end, { desc = '[T]est [N]earest' })
 
-    vim.keymap.set('n', '<leader>tn', '<cmd>TestNearest<CR>', { desc = '[T]est [N]earest' })
-    vim.keymap.set('n', '<leader>tf', '<cmd>TestFile<CR>', { desc = '[T]est [F]ile' })
-    vim.keymap.set('n', '<leader>ts', '<cmd>TestSuite<CR>', { desc = '[T]est [S]uite' })
-    vim.keymap.set('n', '<leader>tl', '<cmd>TestLast<CR>', { desc = '[T]est [L]ast' })
-    vim.keymap.set('n', '<leader>tv', '<cmd>TestVisit<CR>', { desc = '[T]est [V]isit' })
+      vim.keymap.set('n', '<leader>tf', function()
+        require('neotest').run.run(vim.fn.expand '%')
+      end, { desc = '[T]est [F]ile' })
 
-    vim.g['test#csharp#runner'] = 'dotnettest'
-    vim.g['test#strategy'] = 'vimux'
+      vim.keymap.set('n', '<leader>td', function()
+        require('neotest').run.run { strategy = 'dap', suite = false }
+      end, { desc = '[T]est [D]ebug' })
 
-    vim.g['test#custom_strategies'] = {
-      sudo_vimux = function(cmd)
-        if type(cmd) == 'string' then
-          cmd = { cmd }
-        end
+      vim.keymap.set('n', '<leader>ts', function()
+        require('neotest').run.stop()
+      end, { desc = '[T]est [S]top' })
+    end,
+  },
+  {
+    'vim-test/vim-test',
+    dependencies = { 'preservim/vimux' },
 
-        vim.fn['VimuxRunCommand']('sudo ' .. table.concat(cmd, ' '))
-      end,
-    }
-  end,
+    config = function()
+      vim.keymap.set('n', '<leader>te', function()
+        vim.cmd 'TestNearest -strategy=sudo_vimux'
+      end, { desc = '[T]est [N]earest [E]levated' })
+
+      vim.keymap.set('n', '<leader>ttn', '<cmd>TestNearest<CR>', { desc = '[T]est [T]mux [N]earest' })
+      vim.keymap.set('n', '<leader>ttf', '<cmd>TestFile<CR>', { desc = '[T]est [T]mux [F]ile' })
+      vim.keymap.set('n', '<leader>ttl', '<cmd>TestLast<CR>', { desc = '[T]est [T]mux [L]ast' })
+
+      vim.g['test#csharp#runner'] = 'dotnettest'
+      vim.g['test#strategy'] = 'vimux'
+
+      vim.g['test#custom_strategies'] = {
+        sudo_vimux = function(cmd)
+          if type(cmd) == 'string' then
+            cmd = { cmd }
+          end
+
+          vim.fn['VimuxRunCommand']('sudo ' .. table.concat(cmd, ' '))
+        end,
+      }
+    end,
+  },
 }

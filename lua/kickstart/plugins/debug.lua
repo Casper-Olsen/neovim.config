@@ -109,29 +109,29 @@ return {
         end,
         stopAtEntry = false,
       },
-      {
-        type = 'coreclr',
-        name = 'NetCoreDbg - Debug nearest xUnit Test',
-        request = 'launch',
-        program = 'dotnet',
-        args = function()
-          local dllPath = dotnet.build_dll_path()
-          local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
-          if test_name then
-            return {
-              'vstest',
-              dllPath,
-              '--TestCaseFilter:FullyQualifiedName~' .. test_name,
-            }
-          else
-            return { 'vstest', dllPath }
-          end
-        end,
-        env = { VSTEST_HOST_DEBUG = '1', DOTNET_Configuration = 'Debug' },
-        cwd = '${workspaceFolder}',
-        console = 'integratedTerminal',
-        stopAtEntry = false,
-      },
+      -- {
+      --   type = 'coreclr',
+      --   name = 'NetCoreDbg - Debug nearest xUnit Test',
+      --   request = 'launch',
+      --   program = 'dotnet',
+      --   args = function()
+      --     local dllPath = dotnet.build_dll_path()
+      --     local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
+      --     if test_name then
+      --       return {
+      --         'vstest',
+      --         dllPath,
+      --         '--TestCaseFilter:FullyQualifiedName~' .. test_name,
+      --       }
+      --     else
+      --       return { 'vstest', dllPath }
+      --     end
+      --   end,
+      --   env = { VSTEST_HOST_DEBUG = '1', DOTNET_Configuration = 'Debug' },
+      --   cwd = '${workspaceFolder}',
+      --   console = 'integratedTerminal',
+      --   stopAtEntry = false,
+      -- },
     }
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
@@ -175,16 +175,16 @@ return {
     }
 
     -- Change breakpoint icons
-    -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
-    -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
-    -- local breakpoint_icons = vim.g.have_nerd_font
-    --     and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
-    --   or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
-    -- for type, icon in pairs(breakpoint_icons) do
-    --   local tp = 'Dap' .. type
-    --   local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
-    --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
-    -- end
+    vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
+    vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
+    local breakpoint_icons = vim.g.have_nerd_font
+        and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
+      or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
+    for type, icon in pairs(breakpoint_icons) do
+      local tp = 'Dap' .. type
+      local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
+      vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
+    end
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
@@ -198,60 +198,5 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
-
-    -- Debug attach for C#
-    local handler_id = 'auto_attach_testhost'
-    local already_attached = false
-
-    local function is_cs_debug_session(session)
-      return session and (session.config.type == 'coreclr' or session.config.name:match 'NetCoreDbg')
-    end
-
-    dap.listeners.after.event_terminated[handler_id] = function(session)
-      if is_cs_debug_session(session) then
-        already_attached = false
-      end
-    end
-
-    dap.listeners.after.event_exited[handler_id] = function(session)
-      if is_cs_debug_session(session) then
-        already_attached = false
-      end
-    end
-
-    -- dap.listeners.after.event_breakpoint[handler_id] = function(session, body)
-    --   if is_cs_debug_session(session) and body.reason == 'changed' then
-    --     print('[DAP] Breakpoint status changed: ' .. vim.inspect(body))
-    --   end
-    -- end
-
-    dap.listeners.after.event_output[handler_id] = function(session, body)
-      if not is_cs_debug_session(session) or already_attached or body.category ~= 'stdout' then
-        return
-      end
-
-      local pid = body.output and body.output:match 'Process Id:%s*(%d+), Name:'
-      if pid then
-        already_attached = true
-        print('[DAP] Found testhost PID: ' .. pid)
-        vim.defer_fn(function()
-          print('[DAP] Attempting to attach to process: ' .. pid)
-          dap.run {
-            type = 'coreclr',
-            request = 'attach',
-            name = 'Attach to testhost',
-            processId = tonumber(pid),
-            cwd = vim.fn.getcwd(),
-            justMyCode = false,
-            sourceFileMap = {
-              ['*'] = '${workspaceFolder}',
-            },
-            sourceLinkOptions = {
-              timeoutSeconds = 30,
-            },
-          }
-        end, 2500)
-      end
-    end
   end,
 }
