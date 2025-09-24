@@ -33,9 +33,17 @@ return {
         require('neotest').run.run { strategy = 'dap', suite = false }
       end, { desc = '[T]est [D]ebug' })
 
-      vim.keymap.set('n', '<leader>ts', function()
+      vim.keymap.set('n', '<leader>te', function()
         require('neotest').run.stop()
-      end, { desc = '[T]est [S]top' })
+      end, { desc = '[T]est [E]nd' })
+
+      vim.keymap.set('n', '<leader>tp', function()
+        require('neotest').output_panel.toggle()
+      end, { desc = '[T]est Output [P]anel' })
+
+      vim.keymap.set('n', '<leader>ts', function()
+        require('neotest').summary.toggle()
+      end, { desc = '[T]est [S]ummary' })
     end,
   },
   {
