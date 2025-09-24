@@ -109,29 +109,6 @@ return {
         end,
         stopAtEntry = false,
       },
-      -- {
-      --   type = 'coreclr',
-      --   name = 'NetCoreDbg - Debug nearest xUnit Test',
-      --   request = 'launch',
-      --   program = 'dotnet',
-      --   args = function()
-      --     local dllPath = dotnet.build_dll_path()
-      --     local test_name = require('custom.dap-dotnet').find_nearest_xunit_test()
-      --     if test_name then
-      --       return {
-      --         'vstest',
-      --         dllPath,
-      --         '--TestCaseFilter:FullyQualifiedName~' .. test_name,
-      --       }
-      --     else
-      --       return { 'vstest', dllPath }
-      --     end
-      --   end,
-      --   env = { VSTEST_HOST_DEBUG = '1', DOTNET_Configuration = 'Debug' },
-      --   cwd = '${workspaceFolder}',
-      --   console = 'integratedTerminal',
-      --   stopAtEntry = false,
-      -- },
     }
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
