@@ -30,5 +30,8 @@ return {
       model = 'claude-3.7-sonnet',
     },
     vim.keymap.set('n', '<leader>cc', '<cmd>CopilotChatToggle<CR>', { desc = 'Copilot Chat' }),
+
+    -- To use the picker with CopilotChat, type a a command (ex. "#file:") and press TAB
+    -- TAB = Trigger/accept completion menu for tokens
   },
 }
