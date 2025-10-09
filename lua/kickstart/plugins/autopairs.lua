@@ -9,6 +9,16 @@ return {
     local cmp_autopairs = require 'nvim-autopairs.completion.cmp'
     local cmp = require 'cmp'
 
+    local npairs = require 'nvim-autopairs'
+    -- npairs.remove_rule '"'
+    -- npairs.remove_rule "'"
+
+    npairs.setup {
+      check_ts = true,
+      ts_config = {
+        csharp = { 'string' },
+      },
+    }
     cmp.event:on('confirm_done', function(event)
       local entry = event.entry:get_completion_item()
       local bufnr = vim.api.nvim_get_current_buf()
