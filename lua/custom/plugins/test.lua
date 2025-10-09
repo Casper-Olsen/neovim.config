@@ -41,6 +41,11 @@ return {
         require('neotest').output_panel.toggle()
       end, { desc = '[T]est Output [P]anel' })
 
+      -- Exit the output window by moving to another window (ctrl + h/j/k/l)
+      vim.keymap.set('n', '<leader>to', function()
+        require('neotest').output.open { enter = true, last_run = true, auto_close = true }
+      end, { desc = '[T]est [O]utput' })
+
       vim.keymap.set('n', '<leader>ts', function()
         require('neotest').summary.toggle()
       end, { desc = '[T]est [S]ummary' })
