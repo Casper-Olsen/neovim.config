@@ -78,6 +78,7 @@ return {
         { '<leader>u', group = '[U]ndo' },
         { '<leader>z', group = '[Z]en mode' },
         { '<leader>b', group = '[B]uild' },
+        { '<leader>n', group = '[N]eotree' },
       },
     },
   },
