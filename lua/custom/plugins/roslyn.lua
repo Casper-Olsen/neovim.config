@@ -6,7 +6,7 @@ return {
       filewatching = 'roslyn',
 
       -- Use `:Roslyn target` to change the target .sln
-      lock_target = true,
+      lock_target = false,
 
       ignore_target = function(target)
         return string.match(target, '%.CI%.sln$') ~= nil
