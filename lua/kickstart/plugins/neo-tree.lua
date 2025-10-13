@@ -15,6 +15,7 @@ return {
           follow_current_file = {
             enabled = true,
             leave_dirs_open = false,
+            hijack_netrw_behavior = 'disabled',
           },
         },
         default_component_configs = {
