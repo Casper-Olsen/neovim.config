@@ -108,6 +108,10 @@ return {
             vim.lsp.buf.signature_help()
           end, '[H]over [S]ignature')
 
+          vim.keymap.set({ 'i' }, '<C-e>', function()
+            require('lsp_signature').toggle_float_win()
+          end, { silent = true, noremap = true, desc = 'Close LSP signature window' })
+
           ---@param client vim.lsp.Client
           ---@param method vim.lsp.protocol.Method
           ---@param bufnr? integer some lsp support methods only in specific files
