@@ -10,6 +10,16 @@ return {
     lazy = false, -- neo-tree will lazily load itself
 
     config = function()
+      require('neo-tree').setup {
+        filesystem = {
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false,
+          },
+        },
+      }
+      -- Use `e` to expand the neo-tree buffer
+
       vim.keymap.set('n', '<leader>n', '<cmd>Neotree toggle<CR>', { desc = '[N]eotree' })
     end,
   },
