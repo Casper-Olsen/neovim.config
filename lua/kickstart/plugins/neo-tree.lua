@@ -17,6 +17,11 @@ return {
             leave_dirs_open = false,
           },
         },
+        default_component_configs = {
+          file_size = {
+            enabled = false,
+          },
+        },
       }
       -- Use `e` to expand the neo-tree buffer
 
