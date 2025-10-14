@@ -1,5 +1,6 @@
 return {
   'seblyng/roslyn.nvim',
+  -- Important! Don't lazy load roslyn.nvim since it can lead to "weird things" happening. E.g. timing issues
   config = function()
     require('roslyn').setup {
       filewatching = 'roslyn',
