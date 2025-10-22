@@ -170,8 +170,8 @@ return {
     -- Break debugger on exception - Settings
     dap.listeners.after.event_initialized['set_exception_breakpoints'] = function(session)
       if session.config.type == 'netcoredbg' then
-        -- dap.set_exception_breakpoints { 'none' }
-        dap.set_exception_breakpoints { 'all' }
+        dap.set_exception_breakpoints { 'none' }
+        -- dap.set_exception_breakpoints { 'all' }
       end
       -- Handle other languages
     end
