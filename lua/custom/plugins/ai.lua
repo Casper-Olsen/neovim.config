@@ -26,8 +26,8 @@ return {
     },
     build = 'make tiktoken',
     opts = {
-      -- model = 'gpt-4.1',
-      model = 'claude-3.7-sonnet',
+      model = 'gpt-4.1',
+      -- model = 'claude-3.5-sonnet',
     },
     vim.keymap.set('n', '<leader>cc', '<cmd>CopilotChatToggle<CR>', { desc = 'Copilot Chat' }),
 
