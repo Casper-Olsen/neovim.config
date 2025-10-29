@@ -18,6 +18,9 @@ return {
     end,
   },
   {
+    -- Fix to the following error: "Can not open browse by using cmd.exe command"
+    -- cp /mnt/c/WINDOWS/system32/cmd.exe $HOME/.local/bin/
+
     'iamcco/markdown-preview.nvim',
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     build = 'cd app && yarn install',
