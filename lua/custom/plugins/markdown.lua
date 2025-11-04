@@ -29,7 +29,7 @@ return {
     end,
     ft = { 'markdown', 'codecompanion' },
     config = function()
-      vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<CR>', { desc = '[M]arkdown [P]review' })
+      vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreview<CR>', { desc = '[M]arkdown [P]review' })
     end,
   },
 }
