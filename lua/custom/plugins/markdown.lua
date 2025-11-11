@@ -1,6 +1,7 @@
 return {
   {
     'MeanderingProgrammer/render-markdown.nvim',
+    version = 'v8.10.0',
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },
     config = function()
       require('render-markdown').setup {

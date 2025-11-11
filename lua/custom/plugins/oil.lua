@@ -1,5 +1,6 @@
 return {
   'stevearc/oil.nvim',
+  commit = '7e1cd7703ff2924d7038476dcbc04b950203b902',
   dependencies = { { 'nvim-mini/mini.icons', opts = {} } },
   -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
   -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.

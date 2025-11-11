@@ -1,6 +1,7 @@
 return {
   {
     'christoomey/vim-tmux-navigator',
+    commit = 'c45243dc1f32ac6bcf6068e5300f3b2b237e576a',
     cmd = {
       'TmuxNavigateLeft',
       'TmuxNavigateDown',
@@ -16,8 +17,5 @@ return {
       { '<c-l>', '<cmd><C-U>TmuxNavigateRight<CR>' },
       { '<c-\\>', '<cmd><C-U>TmuxNavigatePrevious<CR>' },
     },
-  },
-  {
-    'preservim/vimux',
   },
 }

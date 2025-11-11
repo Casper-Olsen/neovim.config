@@ -1,5 +1,6 @@
 return {
   'folke/trouble.nvim',
+  commit = 'bd67efe408d4816e25e8491cc5ad4088e708a69a',
   opts = {
     focus = false,
     auto_close = false,
