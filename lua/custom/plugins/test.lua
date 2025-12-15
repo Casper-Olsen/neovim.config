@@ -54,6 +54,7 @@ return {
   },
   {
     'vim-test/vim-test',
+    commit = '1eeb12774a0f251571700ccf68da27789b2f0852',
     dependencies = { 'preservim/vimux' },
 
     config = function()

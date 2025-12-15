@@ -1,8 +1,7 @@
 return {
   {
     'nvim-neo-tree/neo-tree.nvim',
-    commit = 'f3df514fff2bdd4318127c40470984137f87b62e',
-    branch = 'v3.x',
+    version = 'v3.38.0',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
