@@ -19,6 +19,10 @@
             {
                 "language": ["csharp", "cs"],
                 "path": "./csharp/csharp.json"
+            },
+            {
+                "language": ["csharp", "cs"],
+                "path": "./csharp/csharpdoc.json"
             }
         ]
     }
