@@ -19,9 +19,7 @@
             {
                 "language": ["csharp", "cs"],
                 "path": "./csharp/csharp.json"
-            },
+            }
         ]
     }
 }
-
-
