@@ -1,7 +1,7 @@
 return {
   {
     'christoomey/vim-tmux-navigator',
-    commit = 'c45243dc1f32ac6bcf6068e5300f3b2b237e576a',
+    commit = 'e41c431a0c7b7388ae7ba341f01a0d217eb3a432',
     cmd = {
       'TmuxNavigateLeft',
       'TmuxNavigateDown',

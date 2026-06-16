@@ -1,11 +1,19 @@
 return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
-    commit = 'b5311ab3ed9c846b585c0c15b7559be131ec4be9',
+    commit = 'a1d504892f2bc56c2e79b65c6faded2fd21f3eca',
     event = 'InsertEnter',
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
-      'L3MON4D3/LuaSnip',
+      {
+        'L3MON4D3/LuaSnip',
+        version = 'v2.5.0',
+        build = 'make install_jsregexp',
+        config = function()
+          local snippet_path = vim.fn.stdpath 'config' .. '/snippets'
+          require('luasnip.loaders.from_vscode').lazy_load { paths = { snippet_path } }
+        end,
+      },
       'saadparwaiz1/cmp_luasnip',
 
       -- Adds other completion capabilities.
@@ -107,15 +115,15 @@ return {
           { name = 'path' },
           -- { name = 'nvim_lsp_signature_help' }, -- Not 100% sure if this is needed to make hover signature work
         },
-
-        -- Setup for vim-dadbod
-        cmp.setup.filetype({ 'sql' }, {
-          sources = {
-            { name = 'vim-dadbod-completion' },
-            { name = 'buffer' },
-          },
-        }),
       }
+
+      -- Setup for vim-dadbod
+      cmp.setup.filetype({ 'sql' }, {
+        sources = {
+          { name = 'vim-dadbod-completion' },
+          { name = 'buffer' },
+        },
+      })
     end,
   },
 }

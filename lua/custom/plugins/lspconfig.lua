@@ -4,7 +4,7 @@ return {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
     'folke/lazydev.nvim',
-    version = 'v1.10.0',
+    commit = 'ff2cbcba459b637ec3fd165a2be59b7bbaeedf0d',
     ft = { 'lua' },
     opts = {
       library = {
@@ -16,7 +16,7 @@ return {
   {
     -- Show function signature when typing
     'ray-x/lsp_signature.nvim',
-    commit = '1e56259e00c70959a1b3fba908b8583722fb96bf',
+    commit = 'b7ace9ddb1640ce266012a45a672dfdaedfa5ec6',
     event = 'InsertEnter',
     opts = {
       bind = true,
@@ -36,7 +36,7 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    version = 'v2.5.0',
+    version = 'v2.10.0',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
@@ -121,21 +121,13 @@ return {
             require('lsp_signature').toggle_float_win()
           end, { silent = true, noremap = true, desc = 'Close LSP signature window' })
 
-          ---@param client vim.lsp.Client
-          ---@param method vim.lsp.protocol.Method
-          ---@param bufnr? integer some lsp support methods only in specific files
-          ---@return boolean
-          local function client_supports_method(client, method, bufnr)
-            return client:supports_method(method, bufnr)
-          end
-
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
           --    See `:help CursorHold` for information about when this is executed
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -162,7 +154,7 @@ return {
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -187,15 +179,6 @@ return {
         virtual_text = {
           source = 'if_many',
           spacing = 2,
-          format = function(diagnostic)
-            local diagnostic_message = {
-              [vim.diagnostic.severity.ERROR] = diagnostic.message,
-              [vim.diagnostic.severity.WARN] = diagnostic.message,
-              [vim.diagnostic.severity.INFO] = diagnostic.message,
-              [vim.diagnostic.severity.HINT] = diagnostic.message,
-            }
-            return diagnostic_message[diagnostic.severity]
-          end,
         },
       }
 
@@ -206,7 +189,11 @@ return {
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
-      vim.lsp.config.clangd = {
+      vim.lsp.config('*', {
+        capabilities = capabilities,
+      })
+
+      vim.lsp.config('clangd', {
         cmd = {
           'clangd',
           '--offset-encoding=utf-16',
@@ -219,40 +206,38 @@ return {
         init_options = {
           fallbackFlags = { '-std=c++23' },
         },
-        capabilities = capabilities,
         root_markers = { 'compile_commands.json', 'compile_flags.txt' },
         filetypes = { 'c', 'cpp' },
-      }
-      vim.lsp.config.ts_ls = {
+      })
+
+      vim.lsp.config('ts_ls', {
         settings = {
           tsserver_file_preferences = {
             includeInlayParameterNameHints = 'literals',
             includeInlayHintsForImplicitVariableTypes = false,
           },
         },
-        capabilities = capabilities,
-      }
+      })
 
-      vim.lsp.config.lua_ls = {
+      vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
             completion = { callSnippet = 'Replace' },
           },
         },
-        capabilities = capabilities,
-      }
+      })
 
       vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls' }
 
       require('mason-tool-installer').setup {
         ensure_installed = {
+          'lua-language-server',
           'stylua', -- for Lua formatting
         },
       }
 
       require('mason-lspconfig').setup {
-        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = false,
+        automatic_enable = false,
       }
     end,
   },
