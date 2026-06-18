@@ -65,11 +65,19 @@ return {
       vim.keymap.set('n', '<leader>ttn', '<cmd>TestNearest<CR>', { desc = '[T]est [T]mux [N]earest' })
       vim.keymap.set('n', '<leader>ttf', '<cmd>TestFile<CR>', { desc = '[T]est [T]mux [F]ile' })
       vim.keymap.set('n', '<leader>ttl', '<cmd>TestLast<CR>', { desc = '[T]est [T]mux [L]ast' })
+      vim.keymap.set('n', '<leader>tqn', '<cmd>DotnetTestNearestAsync<CR>', { desc = '[T]est [Q]uickfix [N]earest' })
 
       vim.g['test#csharp#runner'] = 'dotnettest'
       vim.g['test#strategy'] = 'vimux'
 
       vim.g['test#custom_strategies'] = {
+        quickfix_dotnet = function(cmd)
+          if _G.DotnetTestQuickfixRun then
+            _G.DotnetTestQuickfixRun(cmd)
+          else
+            vim.notify('DotnetTestQuickfixRun is not loaded', vim.log.levels.ERROR)
+          end
+        end,
         sudo_vimux = function(cmd)
           if type(cmd) == 'string' then
             cmd = { cmd }
