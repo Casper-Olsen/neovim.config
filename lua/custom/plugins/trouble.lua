@@ -4,9 +4,56 @@ local function quickfix_mode()
   return qf.title == 'dotnet test' and 'dotnet_test' or 'quickfix'
 end
 
+--- Patch Trouble's follow behavior so dotnet test quickfix entries track the
+--- current file group or failing line in the custom plain-text formatter.
+local function patch_dotnet_test_follow()
+  local view = require 'trouble.view'
+  local original_follow = view.follow
+
+  view.follow = function(self)
+    if self.opts.mode ~= 'dotnet_test' then
+      return original_follow(self)
+    end
+
+    if not self.win:valid() or self.moving:is_active() or vim.api.nvim_get_current_win() == self.win.win then
+      return
+    end
+
+    local filter = require 'trouble.filter'
+    local ctx = { opts = self.opts, main = self:main() }
+    local fname = vim.api.nvim_buf_get_name(ctx.main.buf or 0)
+    local loc = self:at()
+    local in_group = loc.node and loc.node.item and loc.node.item.filename == fname
+    local cursor_item = nil
+    local cursor_group = nil
+
+    for row, location in pairs(self.renderer._locations) do
+      local is_group = not in_group and location.node and location.node.group and location.node.item and location.node.item.filename == fname
+      if is_group then
+        cursor_group = { row, 1 }
+      end
+
+      if location.first_line and location.item and filter.is(location.item, { range = true }, ctx) then
+        cursor_item = { row, 1 }
+      end
+    end
+
+    local cursor = cursor_item or cursor_group
+    if cursor then
+      vim.wo[self.win.win].cursorline = true
+      vim.api.nvim_win_set_cursor(self.win.win, cursor)
+      return true
+    end
+  end
+end
+
 return {
   'folke/trouble.nvim',
   commit = 'bd67efe408d4816e25e8491cc5ad4088e708a69a',
+  config = function(_, opts)
+    require('trouble').setup(opts)
+    patch_dotnet_test_follow()
+  end,
   opts = {
     focus = false,
     auto_close = false,
