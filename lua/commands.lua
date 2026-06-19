@@ -31,7 +31,25 @@ local function find_sln_file(start_path)
   return nil
 end
 
-local function add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg)
+local function strip_ansi(line)
+  return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
+end
+
+local function quickfix_text(text)
+  text = strip_ansi(text)
+  text = text:gsub('[\r\n\t]+', ' ')
+  text = text:gsub('%c+', ' ')
+  text = text:gsub('%s+', ' ')
+  text = vim.trim(text)
+
+  if #text > 160 then
+    text = text:sub(1, 157) .. '...'
+  end
+
+  return text
+end
+
+local function add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg, user_data)
   local key = table.concat({ file, lnum, col, type, code, msg }, '|')
   if seen[key] then
     return
@@ -42,24 +60,25 @@ local function add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code,
     filename = vim.fn.fnamemodify(file, ':p'),
     lnum = tonumber(lnum),
     col = tonumber(col),
-    text = string.format('%s %s: %s', type:upper(), code, msg),
+    text = quickfix_text(string.format('%s %s: %s', type:upper(), code, msg)),
     type = type:sub(1, 1):upper(),
+    user_data = user_data,
   })
-end
-
-local function strip_ansi(line)
-  return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
 end
 
 local function set_quickfix(qf_list, title)
   vim.fn.setqflist({}, 'r', { title = title, items = qf_list })
 end
 
-local function open_quickfix()
+local function open_quickfix(mode, action)
   if vim.fn.exists ':Trouble' == 2 then
-    vim.cmd 'Trouble quickfix'
+    local trouble_mode = mode or 'quickfix'
+    vim.cmd('silent Trouble ' .. trouble_mode)
+    vim.defer_fn(function()
+      vim.cmd('silent Trouble ' .. trouble_mode .. ' ' .. (action or 'fold_close_all'))
+    end, 50)
   else
-    vim.cmd 'copen'
+    vim.cmd 'silent copen'
   end
 end
 
@@ -72,7 +91,6 @@ local function dotnet_build_async()
 
   local qf_list = {}
   local seen = {}
-
   vim.fn.setqflist({}, 'r') -- clear quickfix first
 
   vim.fn.jobstart({ 'dotnet', 'build', sln }, {
@@ -112,173 +130,269 @@ local function dotnet_build_async()
   })
 end
 
+-- Run `dotnet test` asynchronously and publish failures to the normal quickfix
+-- list. Test failures are grouped by source file/line so quickfix navigation
+-- jumps once per failing line. The dotnet_test Trouble mode renders multiline
+-- text without Treesitter because failure output is not valid C#.
 local function dotnet_test_quickfix_async(cmd)
-  local sln = find_sln_file()
-  local test_cmd = cmd or { 'dotnet', 'test', sln }
-  if not cmd and not sln then
-    print '❌ No .sln file found'
-    return
+  local test_cmd = cmd
+  if not test_cmd then
+    local sln = find_sln_file()
+    if not sln then
+      print '❌ No .sln file found'
+      return
+    end
+
+    test_cmd = { 'dotnet', 'test', sln }
   end
-
-  local qf_list = {}
-  local seen = {}
-  local current_test = nil
-  local current_message = nil
-  local in_error_message = false
-  local run_error_message = nil
-  local current_frames = {}
-
   vim.fn.setqflist({}, 'r') -- clear quickfix first
   if type(test_cmd) == 'string' then
-    print('🧪 dotnet test - Running: ' .. test_cmd)
+    print('🧪 dotnet test - Running: ' .. quickfix_text(test_cmd))
   else
-    print('🧪 dotnet test - Running: ' .. table.concat(test_cmd, ' '))
+    print('🧪 dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
   end
 
-  local function add_test_failure(file, lnum, msg)
-    local key = table.concat({ file, lnum, msg }, '|')
-    if seen[key] then
-      return
-    end
+  local diagnostic_pattern = '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$'
+  local stack_frame_pattern = '%s+at .- in (.-):line (%d+)'
+  local parser = {
+    qf_list = {},
+    failure_groups = {},
+    seen = {},
+    current_test = nil,
+    current_message = nil,
+    in_error_message = false,
+    run_error_message = nil,
+    current_frames = {},
+    current_failure_lines = {},
+  }
 
-    seen[key] = true
-    table.insert(qf_list, {
-      filename = vim.fn.fnamemodify(file, ':p'),
-      lnum = tonumber(lnum),
-      col = 1,
-      text = msg,
-      type = 'E',
-    })
+  local function short_test_name(test_name)
+    return test_name:match('([%w_`]+%.[^%.]+)$') or test_name
   end
 
-  local function add_test_failure_without_location(msg)
-    local key = 'no-location|' .. msg
-    if seen[key] then
-      return
-    end
-
-    seen[key] = true
-    table.insert(qf_list, {
-      text = msg,
-      type = 'E',
-    })
+  local function test_display_name(test_name)
+    return short_test_name(test_name):match('^[^%.]+%.(.+)$') or test_name
   end
 
-  local function trim_test_name(test_name)
-    if not test_name then
-      return nil
-    end
+  local function sort_quickfix()
+    local severity_order = {
+      E = 1,
+      W = 2,
+    }
 
-    return vim.trim(test_name:gsub('%s*%[%d+%s*ms%]%s*$', ''))
+    table.sort(parser.qf_list, function(a, b)
+      local a_severity = severity_order[a.type] or 99
+      local b_severity = severity_order[b.type] or 99
+      if a_severity ~= b_severity then
+        return a_severity < b_severity
+      end
+
+      local a_has_location = a.filename ~= nil and a.lnum ~= nil
+      local b_has_location = b.filename ~= nil and b.lnum ~= nil
+      if a_has_location ~= b_has_location then
+        return a_has_location
+      end
+
+      local a_filename = a.filename or ''
+      local b_filename = b.filename or ''
+      if a_filename ~= b_filename then
+        return a_filename < b_filename
+      end
+
+      local a_lnum = a.lnum or 0
+      local b_lnum = b.lnum or 0
+      if a_lnum ~= b_lnum then
+        return a_lnum < b_lnum
+      end
+
+      local a_col = a.col or 0
+      local b_col = b.col or 0
+      if a_col ~= b_col then
+        return a_col < b_col
+      end
+
+      return (a.text or '') < (b.text or '')
+    end)
   end
 
-  local function current_failure_message(test_name, message)
-    local failure = test_name and ('FAILED ' .. test_name) or 'FAILED test'
-    if message then
-      failure = failure .. ': ' .. message
-    end
-
-    return failure
-  end
-
-  local function test_name_matches_file(frame)
-    if not current_test or not frame.file then
+  local function add_quickfix_item(item)
+    local key = table.concat({
+      item.filename or '',
+      item.lnum or 0,
+      item.col or 0,
+      item.type or '',
+      item.text or '',
+    }, '|')
+    if parser.seen[key] then
       return false
     end
 
-    local class_name = current_test:match '%.([^%.]+)%.[^%.]+$'
-    if not class_name then
-      return false
-    end
-
-    return vim.fn.fnamemodify(frame.file, ':t:r') == class_name
+    parser.seen[key] = true
+    table.insert(parser.qf_list, item)
+    return true
   end
 
-  local function is_test_project_file(frame)
-    return frame.file and frame.file:match('%.Tests/')
-  end
-
-  local function best_failure_frame()
-    for _, frame in ipairs(current_frames) do
-      if test_name_matches_file(frame) then
-        return frame
-      end
+  local function fallback_location()
+    local current_file = vim.api.nvim_buf_get_name(0)
+    if current_file ~= '' and vim.fn.filereadable(current_file) == 1 then
+      return current_file
     end
 
-    for _, frame in ipairs(current_frames) do
-      if is_test_project_file(frame) then
-        return frame
-      end
-    end
-
-    return current_frames[1]
+    return find_sln_file(vim.fn.getcwd())
   end
 
-  local function flush_current_failure()
-    if not current_test then
-      current_frames = {}
-      current_message = nil
+  local function add_failure(file, lnum, summary, text)
+    local filename = vim.fn.fnamemodify(file, ':p')
+    local line_number = tonumber(lnum)
+    local key = table.concat({ filename, line_number, 1 }, '|')
+    local group = parser.failure_groups[key]
+    if not group then
+      group = {
+        filename = filename,
+        lnum = line_number,
+        col = 1,
+        summaries = {},
+        details = {},
+      }
+      parser.failure_groups[key] = group
+    end
+
+    table.insert(group.summaries, summary)
+    table.insert(group.details, text)
+  end
+
+  local function add_failure_without_location(text)
+    local fallback_file = fallback_location()
+    local item = {
+      text = text,
+      type = 'E',
+    }
+
+    if fallback_file then
+      item.filename = vim.fn.fnamemodify(fallback_file, ':p')
+      item.lnum = 1
+      item.col = 1
+    end
+
+    add_quickfix_item(item)
+  end
+
+  -- Finalize the currently parsed failing test. Prefer a frame matching the
+  -- test class, then any *.Tests frame, then the first parsed frame. Stackless
+  -- failures use a fallback file so Trouble can display them as valid items.
+  local function flush_failure()
+    if not parser.current_test then
+      parser.current_frames = {}
+      parser.current_message = nil
+      parser.current_failure_lines = {}
       return
     end
 
-    local frame = best_failure_frame()
-    local message = current_failure_message(current_test, current_message)
+    local frame = nil
+    local class_name = short_test_name(parser.current_test):match '^([^%.]+)%.'
+    if class_name then
+      for _, candidate in ipairs(parser.current_frames) do
+        if candidate.file and vim.fn.fnamemodify(candidate.file, ':t:r') == class_name then
+          frame = candidate
+          break
+        end
+      end
+    end
+
+    if not frame then
+      for _, candidate in ipairs(parser.current_frames) do
+        if candidate.file and candidate.file:match('%.Tests/') then
+          frame = candidate
+          break
+        end
+      end
+    end
+
+    frame = frame or parser.current_frames[1]
+
+    local test_name = test_display_name(parser.current_test)
+    local full_message = parser.current_message and ('FAILED ' .. test_name .. ': ' .. parser.current_message) or ('FAILED ' .. test_name)
+    local summary = full_message
+    if parser.current_message then
+      summary = quickfix_text(full_message)
+    end
+
+    local full_text = vim.trim(table.concat(parser.current_failure_lines, '\n'))
+    local qf_text = summary
+    if full_text ~= '' then
+      qf_text = summary .. '\n' .. full_text
+    end
+
     if frame then
-      add_test_failure(frame.file, frame.lnum, message)
+      add_failure(frame.file, frame.lnum, summary, qf_text)
     else
-      add_test_failure_without_location(message)
+      add_failure_without_location(qf_text)
     end
 
-    current_test = nil
-    current_message = nil
-    current_frames = {}
+    parser.current_test = nil
+    parser.current_message = nil
+    parser.current_frames = {}
+    parser.current_failure_lines = {}
   end
 
+  -- Parse one line of dotnet output.
+  -- Handles compiler diagnostics immediately, otherwise accumulates test failure
+  -- context until the next failure or process exit calls `flush_failure`.
   local function parse_line(line)
     line = strip_ansi(line)
-    local file, lnum, col, type, code, msg = string.match(line, '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$')
+    local file, lnum, col, type, code, msg = string.match(line, diagnostic_pattern)
     if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
-      add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg)
+      add_dotnet_diagnostic(parser.qf_list, parser.seen, file, lnum, col, type, code, msg)
       return
     end
 
-    local failed_test = trim_test_name(string.match(line, '^%s*Failed%s+(.+)$'))
+    local failed_test = string.match(line, '^%s*Failed%s+(.+)$')
     if failed_test then
-      flush_current_failure()
-      current_test = failed_test
-      current_message = nil
-      current_frames = {}
-      in_error_message = false
+      flush_failure()
+      parser.current_test = vim.trim(failed_test:gsub('%s*%[%d+%s*ms%]%s*$', ''))
+      parser.current_message = nil
+      parser.current_frames = {}
+      parser.current_failure_lines = { line }
+      parser.in_error_message = false
       return
+    end
+
+    if parser.current_test then
+      table.insert(parser.current_failure_lines, line)
     end
 
     if string.match(line, 'The active test run was aborted') or string.match(line, 'Test Run Aborted') then
-      run_error_message = vim.trim(line)
+      parser.run_error_message = vim.trim(line)
       return
     end
 
     if string.match(line, '^%s*Error Message:%s*$') then
-      in_error_message = true
+      parser.in_error_message = true
       return
     end
 
     if string.match(line, '^%s*Stack Trace:%s*$') then
-      in_error_message = false
+      parser.in_error_message = false
       return
     end
 
-    if in_error_message and not current_message and string.match(line, '%S') then
-      current_message = vim.trim(line)
+    if parser.in_error_message and string.match(line, '%S') then
+      local message_line = vim.trim(line)
+      if parser.current_message then
+        parser.current_message = parser.current_message .. ' ' .. message_line
+      else
+        parser.current_message = message_line
+      end
       return
     end
 
-    local stack_file, stack_lnum = string.match(line, '%s+at .- in (.-):line (%d+)')
+    local stack_file, stack_lnum = string.match(line, stack_frame_pattern)
     if stack_file and stack_lnum then
-      table.insert(current_frames, { file = stack_file, lnum = stack_lnum })
+      table.insert(parser.current_frames, { file = stack_file, lnum = stack_lnum })
     end
   end
 
-  local function parse_lines(data)
+  local function parse_output(_, data)
     if not data then
       return
     end
@@ -288,32 +402,53 @@ local function dotnet_test_quickfix_async(cmd)
     end
   end
 
+  local function add_grouped_failures()
+    for _, group in pairs(parser.failure_groups) do
+      local count = #group.details
+      local text = group.details[1]
+      if count > 1 then
+        local lines = { string.format('[%d failures] %s', count, group.summaries[1]) }
+        for index, detail in ipairs(group.details) do
+          table.insert(lines, '')
+          table.insert(lines, string.format('--- Failure %d of %d ---', index, count))
+          table.insert(lines, detail)
+        end
+        text = table.concat(lines, '\n')
+      end
+
+      add_quickfix_item {
+        filename = group.filename,
+        lnum = group.lnum,
+        col = group.col,
+        text = text,
+        type = 'E',
+      }
+    end
+  end
+
   vim.fn.jobstart(test_cmd, {
     stdout_buffered = true,
     stderr_buffered = true,
 
-    on_stdout = function(_, data)
-      parse_lines(data)
-    end,
-
-    on_stderr = function(_, data)
-      parse_lines(data)
-    end,
+    on_stdout = parse_output,
+    on_stderr = parse_output,
 
     on_exit = function(_, code)
-      flush_current_failure()
+      flush_failure()
+      add_grouped_failures()
 
-      if run_error_message and #qf_list == 0 then
-        add_test_failure_without_location(run_error_message)
+      if parser.run_error_message and #parser.qf_list == 0 then
+        add_failure_without_location(parser.run_error_message)
       end
 
-      if code ~= 0 and #qf_list == 0 then
-        add_test_failure_without_location('dotnet test failed with exit code ' .. code)
+      if code ~= 0 and #parser.qf_list == 0 then
+        add_failure_without_location('dotnet test failed with exit code ' .. code)
       end
 
-      if #qf_list > 0 then
-        set_quickfix(qf_list, 'dotnet test')
-        open_quickfix()
+      if #parser.qf_list > 0 then
+        sort_quickfix()
+        set_quickfix(parser.qf_list, 'dotnet test')
+        open_quickfix 'dotnet_test'
       end
 
       if code == 0 then

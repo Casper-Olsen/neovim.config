@@ -29,8 +29,8 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- Quickfix
-vim.keymap.set('n', '<M-j>', '<cmd>cnext<CR>', { desc = 'Quickfix Next' })
-vim.keymap.set('n', '<M-k>', '<cmd>cprev<CR>', { desc = 'Quickfix Previous' })
+vim.keymap.set('n', '<M-j>', '<cmd>silent! cnext<CR>zvzz', { desc = 'Quickfix Next' })
+vim.keymap.set('n', '<M-k>', '<cmd>silent! cprev<CR>zvzz', { desc = 'Quickfix Previous' })
 
 -- Select all
 vim.keymap.set('n', '<leader>va', 'GVgg', { desc = '[V]isual select [A]ll' })
