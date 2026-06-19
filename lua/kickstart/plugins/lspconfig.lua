@@ -20,6 +20,12 @@ return {
     event = 'InsertEnter',
     opts = {
       bind = true,
+      -- Show overloads while typing function arguments, but omit long
+      -- documentation and avoid triggering outside signature contexts.
+      floating_window = true,
+      doc_lines = 0,
+      always_trigger = false,
+      check_completion_visible = true,
       handler_opts = {
         border = 'rounded',
       },

@@ -21,6 +21,10 @@ return {
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
 
+      -- nvim-cmp opens above when the menu will not fit below the cursor.
+      -- Keep the menu shorter so it consistently prefers opening below.
+      vim.o.pumheight = 8
+
       cmp.setup {
         snippet = {
           expand = function(args)
@@ -28,6 +32,12 @@ return {
           end,
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
+        view = {
+          -- Keep completion focused on the suggestion list; open docs manually when needed.
+          docs = {
+            auto_open = false,
+          },
+        },
 
         window = {
           completion = cmp.config.window.bordered(),
