@@ -1,7 +1,7 @@
 return {
   {
     'nvim-neotest/neotest',
-    version = 'v5.13.4',
+    version = 'v5.18.0',
     dependencies = {
       'nvim-neotest/nvim-nio',
       'nvim-lua/plenary.nvim',
@@ -54,7 +54,7 @@ return {
   },
   {
     'vim-test/vim-test',
-    commit = '1eeb12774a0f251571700ccf68da27789b2f0852',
+    commit = '2676d84c6901e484df00b5d728bd6a345d47ee12',
     dependencies = { 'preservim/vimux' },
 
     config = function()
