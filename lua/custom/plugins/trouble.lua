@@ -15,6 +15,7 @@ local function patch_dotnet_test_follow()
       return original_follow(self)
     end
 
+    ---@diagnostic disable-next-line: undefined-field
     if not self.win:valid() or self.moving:is_active() or vim.api.nvim_get_current_win() == self.win.win then
       return
     end
@@ -104,9 +105,11 @@ return {
           return
         end
 
-        trouble.open(opts)
+        local view = trouble.open(opts)
         vim.defer_fn(function()
-          trouble.fold_close_all(opts)
+          if view and view:is_open() then
+            view:action('fold_close_all', opts)
+          end
         end, 50)
       end,
       desc = '[Q]uick[F]ix Trouble',
