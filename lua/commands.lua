@@ -35,6 +35,16 @@ local function strip_ansi(line)
   return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
 end
 
+local command_icons = vim.g.have_nerd_font and {
+  error = '',
+  success = '',
+  test = '',
+} or {
+  error = '[x]',
+  success = '[ok]',
+  test = '[test]',
+}
+
 local function quickfix_text(text)
   text = strip_ansi(text)
   text = text:gsub('[\r\n\t]+', ' ')
@@ -85,7 +95,7 @@ end
 local function dotnet_build_async()
   local sln = find_sln_file()
   if not sln then
-    print '❌ No .sln file found'
+    print(command_icons.error .. ' No .sln file found')
     return
   end
 
@@ -119,12 +129,12 @@ local function dotnet_build_async()
 
       if code == 0 then
         if #qf_list == 0 then
-          print '✅ Build succeeded with no errors or warnings.'
+          print(command_icons.success .. ' Build succeeded with no errors or warnings.')
         else
-          print '✅ Build succeeded with warnings.'
+          print(command_icons.success .. ' Build succeeded with warnings.')
         end
       else
-        print('❌ Build failed with exit code ' .. code)
+        print(command_icons.error .. ' Build failed with exit code ' .. code)
       end
     end,
   })
@@ -139,7 +149,7 @@ local function dotnet_test_quickfix_async(cmd)
   if not test_cmd then
     local sln = find_sln_file()
     if not sln then
-      print '❌ No .sln file found'
+      print(command_icons.error .. ' No .sln file found')
       return
     end
 
@@ -147,9 +157,9 @@ local function dotnet_test_quickfix_async(cmd)
   end
   vim.fn.setqflist({}, 'r') -- clear quickfix first
   if type(test_cmd) == 'string' then
-    print('🧪 dotnet test - Running: ' .. quickfix_text(test_cmd))
+    print(command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(test_cmd))
   else
-    print('🧪 dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
+    print(command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
   end
 
   local diagnostic_pattern = '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$'
@@ -340,6 +350,11 @@ local function dotnet_test_quickfix_async(cmd)
   -- context until the next failure or process exit calls `flush_failure`.
   local function parse_line(line)
     line = strip_ansi(line)
+    if line:match '^%s*Failed!%s+%-%s+Failed:%s+%d+,%s+Passed:%s+%d+,%s+Skipped:%s+%d+,%s+Total:%s+%d+,' then
+      flush_failure()
+      return
+    end
+
     local file, lnum, col, type, code, msg = string.match(line, diagnostic_pattern)
     if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
       add_dotnet_diagnostic(parser.qf_list, parser.seen, file, lnum, col, type, code, msg)
@@ -452,9 +467,9 @@ local function dotnet_test_quickfix_async(cmd)
       end
 
       if code == 0 then
-        print '✅ Tests passed.'
+        print(command_icons.success .. ' Tests passed.')
       else
-        print('❌ Tests failed with exit code ' .. code)
+        print(command_icons.error .. ' Tests failed with exit code ' .. code)
       end
     end,
   })
@@ -465,7 +480,7 @@ _G.DotnetTestQuickfixRun = dotnet_test_quickfix_async
 local function dotnet_restore_async()
   local sln = find_sln_file()
   if not sln then
-    print '❌ No .sln file found'
+    print(command_icons.error .. ' No .sln file found')
     return
   end
 
@@ -489,9 +504,9 @@ local function dotnet_restore_async()
 
     on_exit = function(_, code)
       if code == 0 then
-        print '✅ Restore succeeded.'
+        print(command_icons.success .. ' Restore succeeded.')
       else
-        print('❌ Restore failed with exit code ' .. code)
+        print(command_icons.error .. ' Restore failed with exit code ' .. code)
         for _, line in ipairs(output_lines) do
           print(line)
         end

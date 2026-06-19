@@ -31,7 +31,7 @@ return {
         },
         sort = { 'severity', 'filename', 'pos', 'message' },
         -- Use {text}, not {text:ts}; test output is not valid C#.
-        format = '{severity_icon|item.type:DiagnosticSignWarn} {text} {pos}',
+        format = '{severity_icon|item.type:DiagnosticSignWarn} {pos} {text}',
       },
     },
   },
