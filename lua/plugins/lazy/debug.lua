@@ -75,6 +75,14 @@ return {
       desc = '[D]ebug: See [L]ast session result.',
     },
     {
+      '<leader>dh',
+      function()
+        require('dapui').eval()
+      end,
+      desc = '[D]ebug: [H]over value',
+      mode = { 'n', 'v' },
+    },
+    {
       '<leader>tdn',
       function()
         require('utils.dotnet-dap').debug_nearest_test()
