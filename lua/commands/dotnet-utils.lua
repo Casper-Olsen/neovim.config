@@ -18,4 +18,14 @@ function M.find_sln_file(start_path)
   return nil
 end
 
+M.command_icons = vim.g.have_nerd_font and {
+  error = '',
+  success = '',
+  test = '',
+} or {
+  error = '[x]',
+  success = '[ok]',
+  test = '[test]',
+}
+
 return M

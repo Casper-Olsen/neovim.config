@@ -1,19 +1,9 @@
 local utils = require 'commands.dotnet-utils'
 
-local command_icons = vim.g.have_nerd_font and {
-  error = '',
-  success = '',
-  test = '',
-} or {
-  error = '[x]',
-  success = '[ok]',
-  test = '[test]',
-}
-
 local function dotnet_build_async()
   local sln = utils.find_sln_file()
   if not sln then
-    print(command_icons.error .. ' No .sln file found')
+    print(utils.command_icons.error .. ' No .sln file found')
     return
   end
 
@@ -70,12 +60,12 @@ local function dotnet_build_async()
       end
       if code == 0 then
         if #qf_list == 0 then
-          print(command_icons.success .. ' Build succeeded with no errors or warnings.')
+          print(utils.command_icons.success .. ' Build succeeded with no errors or warnings.')
         else
-          print(command_icons.success .. ' Build succeeded with warnings.')
+          print(utils.command_icons.success .. ' Build succeeded with warnings.')
         end
       else
-        print(command_icons.error .. ' Build failed with exit code ' .. code)
+        print(utils.command_icons.error .. ' Build failed with exit code ' .. code)
       end
     end,
   })
@@ -84,7 +74,7 @@ end
 local function dotnet_restore_async()
   local sln = utils.find_sln_file()
   if not sln then
-    print(command_icons.error .. ' No .sln file found')
+    print(utils.command_icons.error .. ' No .sln file found')
     return
   end
 
@@ -108,9 +98,9 @@ local function dotnet_restore_async()
 
     on_exit = function(_, code)
       if code == 0 then
-        print(command_icons.success .. ' Restore succeeded.')
+        print(utils.command_icons.success .. ' Restore succeeded.')
       else
-        print(command_icons.error .. ' Restore failed with exit code ' .. code)
+        print(utils.command_icons.error .. ' Restore failed with exit code ' .. code)
         for _, line in ipairs(output_lines) do
           print(line)
         end

@@ -4,16 +4,6 @@ local function strip_ansi(line)
   return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
 end
 
-local command_icons = vim.g.have_nerd_font and {
-  error = '',
-  success = '',
-  test = '',
-} or {
-  error = '[x]',
-  success = '[ok]',
-  test = '[test]',
-}
-
 local function quickfix_text(text)
   text = strip_ansi(text)
   text = text:gsub('[\r\n\t]+', ' ')
@@ -70,7 +60,7 @@ local function dotnet_test_quickfix_async(cmd)
   if not test_cmd then
     local sln = utils.find_sln_file()
     if not sln then
-      print(command_icons.error .. ' No .sln file found')
+      print(utils.command_icons.error .. ' No .sln file found')
       return
     end
 
@@ -78,9 +68,9 @@ local function dotnet_test_quickfix_async(cmd)
   end
   vim.fn.setqflist({}, 'r') -- clear quickfix first
   if type(test_cmd) == 'string' then
-    print(command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(test_cmd))
+    print(utils.command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(test_cmd))
   else
-    print(command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
+    print(utils.command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
   end
 
   local diagnostic_pattern = '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$'
@@ -388,9 +378,9 @@ local function dotnet_test_quickfix_async(cmd)
       end
 
       if code == 0 then
-        print(command_icons.success .. ' Tests passed.')
+        print(utils.command_icons.success .. ' Tests passed.')
       else
-        print(command_icons.error .. ' Tests failed with exit code ' .. code)
+        print(utils.command_icons.error .. ' Tests failed with exit code ' .. code)
       end
     end,
   })
