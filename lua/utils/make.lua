@@ -1,10 +1,10 @@
 -- Make
-function SetReleaseBuild()
+local function SetReleaseBuild()
   vim.opt.makeprg = 'cmake --preset=release && cmake --build --preset=release'
   print 'Build type set to: Release with vcpkg'
 end
 
-function SetDebugBuild()
+local function SetDebugBuild()
   vim.opt.makeprg = 'cmake --preset=debug && cmake --build --preset=debug'
   print 'Build type set to: Debug with vcpkg'
 end
