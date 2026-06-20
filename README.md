@@ -6,6 +6,8 @@
 
 ## Installation
 
+This configuration targets Neovim 0.12.
+
 ### Install
 
 Neovim's configurations are located under the following paths, depending on your OS:
@@ -52,4 +54,3 @@ nvim
 
 That's it! Lazy will install all the plugins you have. Use `:Lazy` to view
 the current plugin status. Hit `q` to close the window.
-
