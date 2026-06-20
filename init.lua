@@ -21,6 +21,9 @@ require 'lazy-plugins'
 require 'custom.pack.undotree'
 
 -- [[ Custom commands ]]
-require 'commands'
+require 'commands.dotnet-build'
+require 'commands.dotnet-test'
+require 'commands.dotnet-utils'
+require 'commands.make'
 
 -- vim: ts=2 sts=2 sw=2 et
