@@ -1,58 +1,5 @@
 return {
   {
-    'nvim-neotest/neotest',
-    version = 'v5.18.0',
-    dependencies = {
-      'nvim-neotest/nvim-nio',
-      'nvim-lua/plenary.nvim',
-      'antoinemadec/FixCursorHold.nvim',
-      'nvim-treesitter/nvim-treesitter',
-      'Issafalcon/neotest-dotnet',
-    },
-    config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('neotest').setup {
-        adapters = {
-          require 'neotest-dotnet' {
-            dap = {
-              args = { justMyCode = false },
-              adapter_name = 'netcoredbg',
-            },
-          },
-        },
-      }
-
-      vim.keymap.set('n', '<leader>tn', function()
-        require('neotest').run.run()
-      end, { desc = '[T]est [N]earest' })
-
-      vim.keymap.set('n', '<leader>tf', function()
-        require('neotest').run.run(vim.fn.expand '%')
-      end, { desc = '[T]est [F]ile' })
-
-      vim.keymap.set('n', '<leader>td', function()
-        require('neotest').run.run { strategy = 'dap', suite = false }
-      end, { desc = '[T]est [D]ebug' })
-
-      vim.keymap.set('n', '<leader>te', function()
-        require('neotest').run.stop()
-      end, { desc = '[T]est [E]nd' })
-
-      vim.keymap.set('n', '<leader>tp', function()
-        require('neotest').output_panel.toggle()
-      end, { desc = '[T]est Output [P]anel' })
-
-      -- Exit the output window by moving to another window (ctrl + h/j/k/l)
-      vim.keymap.set('n', '<leader>to', function()
-        require('neotest').output.open { enter = true, last_run = true, auto_close = true }
-      end, { desc = '[T]est [O]utput' })
-
-      vim.keymap.set('n', '<leader>ts', function()
-        require('neotest').summary.toggle()
-      end, { desc = '[T]est [S]ummary' })
-    end,
-  },
-  {
     'vim-test/vim-test',
     commit = '2676d84c6901e484df00b5d728bd6a345d47ee12',
     dependencies = { 'preservim/vimux' },
@@ -72,7 +19,7 @@ return {
 
       vim.g['test#custom_strategies'] = {
         quickfix_dotnet = function(cmd)
-          require('commands.dotnet-test').run(cmd)
+          require('utils.dotnet-test').run(cmd)
         end,
         sudo_vimux = function(cmd)
           if type(cmd) == 'string' then
