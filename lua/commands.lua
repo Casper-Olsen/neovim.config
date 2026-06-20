@@ -132,10 +132,24 @@ local function dotnet_build_async()
 
     on_exit = function(_, code)
       if #qf_list > 0 then
-        vim.fn.setqflist(qf_list, 'r')
+        table.sort(qf_list, function(a, b)
+          local a_file = a.filename or ''
+          local b_file = b.filename or ''
+
+          if a_file ~= b_file then
+            return a_file < b_file
+          end
+
+          return (a.lnum or 0) < (b.lnum or 0)
+        end)
+
+        vim.fn.setqflist({}, 'r', {
+          title = 'dotnet build',
+          items = qf_list,
+        })
+
         vim.cmd 'Trouble quickfix'
       end
-
       if code == 0 then
         if #qf_list == 0 then
           print(command_icons.success .. ' Build succeeded with no errors or warnings.')
