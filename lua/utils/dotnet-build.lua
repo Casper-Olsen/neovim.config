@@ -1,4 +1,4 @@
-local utils = require 'commands.dotnet-utils'
+local utils = require 'utils.dotnet-utils'
 
 local function dotnet_build_async()
   local sln = utils.find_sln_file()

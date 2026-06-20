@@ -18,12 +18,12 @@ require 'lazy-bootstrap'
 require 'lazy-plugins'
 
 -- [[ Built-in packages ]]
-require 'custom.pack.undotree'
+require 'plugins.pack.undotree'
 
 -- [[ Custom commands ]]
-require 'commands.dotnet-build'
-require 'commands.dotnet-test'
-require 'commands.dotnet-utils'
-require 'commands.make'
+require 'utils.dotnet-build'
+require 'utils.dotnet-test'
+require 'utils.dotnet-utils'
+require 'utils.make'
 
 -- vim: ts=2 sts=2 sw=2 et

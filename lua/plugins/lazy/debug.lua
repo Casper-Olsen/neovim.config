@@ -78,11 +78,11 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
-    local ok, dotnet = pcall(require, 'custom.dap-dotnet')
+    local ok, dotnet = pcall(require, 'utils.dotnet-dap')
     if not ok then
-      print 'Failed to load custom.nvim-dap-dotnet'
+      print('Failed to load utils.dotnet-dap: ' .. dotnet)
     else
-      print 'Loaded custom.nvim-dap-dotnet successfully'
+      print 'Loaded utils.dotnet-dap successfully'
     end
 
     local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'

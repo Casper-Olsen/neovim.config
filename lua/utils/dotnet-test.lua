@@ -1,4 +1,4 @@
-local utils = require 'commands.dotnet-utils'
+local utils = require 'utils.dotnet-utils'
 
 local M = {}
 
