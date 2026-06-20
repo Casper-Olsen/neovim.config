@@ -1,6 +1,7 @@
 return {
   'mfussenegger/nvim-dap',
   commit = '531771530d4f82ad2d21e436e3cc052d68d7aebb',
+  cmd = 'DotnetDebugNearestTest',
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
@@ -73,6 +74,13 @@ return {
       end,
       desc = '[D]ebug: See [L]ast session result.',
     },
+    {
+      '<leader>tdn',
+      function()
+        require('utils.dotnet-dap').debug_nearest_test()
+      end,
+      desc = '[T]est [D]ebug [N]earest',
+    },
   },
   config = function()
     local dap = require 'dap'
@@ -80,9 +88,11 @@ return {
 
     local ok, dotnet = pcall(require, 'utils.dotnet-dap')
     if not ok then
-      print('Failed to load utils.dotnet-dap: ' .. dotnet)
+      vim.notify('Failed to load utils.dotnet-dap: ' .. dotnet, vim.log.levels.ERROR)
     else
-      print 'Loaded utils.dotnet-dap successfully'
+      vim.api.nvim_create_user_command('DotnetDebugNearestTest', function()
+        dotnet.debug_nearest_test()
+      end, { desc = 'Debug the nearest .NET test under the cursor' })
     end
 
     local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'
@@ -167,15 +177,6 @@ return {
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
-
-    -- Break debugger on exception - Settings
-    dap.listeners.after.event_initialized['set_exception_breakpoints'] = function(session)
-      if session.config.type == 'netcoredbg' then
-        dap.set_exception_breakpoints { 'none' }
-        -- dap.set_exception_breakpoints { 'all' }
-      end
-      -- Handle other languages
-    end
 
     -- Install golang specific config
     require('dap-go').setup {
