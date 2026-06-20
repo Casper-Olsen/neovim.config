@@ -112,19 +112,28 @@ local function dotnet_build_async()
       end
 
       for _, line in ipairs(data) do
-        line = strip_ansi(line)
         local file, lnum, col, type, code, msg = string.match(line, '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$')
 
         if file and lnum and col and type and code and msg and (type == 'error' or type == 'warning') then
-          add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg)
+          local key = table.concat({ file, lnum, col, type, code, msg }, '|')
+          if not seen[key] then
+            seen[key] = true
+            table.insert(qf_list, {
+              filename = vim.fn.fnamemodify(file, ':p'),
+              lnum = tonumber(lnum),
+              col = tonumber(col),
+              text = string.format('%s %s: %s', type:upper(), code, msg),
+              type = type:sub(1, 1):upper(), -- "E" or "W"
+            })
+          end
         end
       end
     end,
 
     on_exit = function(_, code)
       if #qf_list > 0 then
-        set_quickfix(qf_list, 'dotnet build')
-        open_quickfix()
+        vim.fn.setqflist(qf_list, 'r')
+        vim.cmd 'Trouble quickfix'
       end
 
       if code == 0 then
@@ -177,11 +186,11 @@ local function dotnet_test_quickfix_async(cmd)
   }
 
   local function short_test_name(test_name)
-    return test_name:match('([%w_`]+%.[^%.]+)$') or test_name
+    return test_name:match '([%w_`]+%.[^%.]+)$' or test_name
   end
 
   local function test_display_name(test_name)
-    return short_test_name(test_name):match('^[^%.]+%.(.+)$') or test_name
+    return short_test_name(test_name):match '^[^%.]+%.(.+)$' or test_name
   end
 
   local function sort_quickfix()
@@ -311,7 +320,7 @@ local function dotnet_test_quickfix_async(cmd)
 
     if not frame then
       for _, candidate in ipairs(parser.current_frames) do
-        if candidate.file and candidate.file:match('%.Tests/') then
+        if candidate.file and candidate.file:match '%.Tests/' then
           frame = candidate
           break
         end
