@@ -1,5 +1,7 @@
 local utils = require 'commands.dotnet-utils'
 
+local M = {}
+
 local function strip_ansi(line)
   return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
 end
@@ -386,8 +388,6 @@ local function dotnet_test_quickfix_async(cmd)
   })
 end
 
-_G.DotnetTestQuickfixRun = dotnet_test_quickfix_async
+M.run = dotnet_test_quickfix_async
 
-vim.api.nvim_create_user_command('DotnetTestNearestAsync', function()
-  vim.cmd 'TestNearest -strategy=quickfix_dotnet'
-end, {})
+return M
