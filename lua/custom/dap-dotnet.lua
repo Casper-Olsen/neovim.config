@@ -5,6 +5,7 @@ local dap = require 'dap'
 -- Wrap dap.run only once to add logging
 if not dap._original_run then
   dap._original_run = dap.run
+  ---@diagnostic disable-next-line: duplicate-set-field
   dap.run = function(config)
     print '[dap.run] called with:'
     for k, v in pairs(config) do
