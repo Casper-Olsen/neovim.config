@@ -1,7 +1,6 @@
 return {
   'mfussenegger/nvim-dap',
   commit = '531771530d4f82ad2d21e436e3cc052d68d7aebb',
-  cmd = 'DotnetDebugNearestTest',
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
