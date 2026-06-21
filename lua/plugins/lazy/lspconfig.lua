@@ -166,6 +166,7 @@ return {
       -- See :help vim.diagnostic.Opts
       vim.diagnostic.config {
         severity_sort = true,
+        update_in_insert = false,
         float = { border = 'rounded', source = 'if_many' },
         underline = { severity = vim.diagnostic.severity.ERROR },
         signs = vim.g.have_nerd_font and {
@@ -214,7 +215,10 @@ return {
         settings = {
           ['rust-analyzer'] = {
             diagnostics = {
-              enable = false,
+              enable = true,
+              experimental = {
+                enable = false,
+              },
             },
           },
         },
