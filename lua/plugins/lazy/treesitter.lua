@@ -8,6 +8,7 @@ return {
       local parsers = {
         'bash',
         'c',
+        'rust',
         'c_sharp',
         'diff',
         'html',
@@ -23,7 +24,7 @@ return {
       require('nvim-treesitter').install(parsers)
 
       vim.api.nvim_create_autocmd('FileType', {
-        pattern = { 'sh', 'c', 'cs', 'diff', 'html', 'lua', 'markdown', 'query', 'vim', 'help' },
+        pattern = { 'sh', 'c', 'rust', 'cs', 'diff', 'html', 'lua', 'markdown', 'query', 'vim', 'help' },
         callback = function()
           vim.treesitter.start()
         end,

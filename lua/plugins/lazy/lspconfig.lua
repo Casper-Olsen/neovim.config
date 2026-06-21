@@ -210,6 +210,16 @@ return {
         filetypes = { 'c', 'cpp' },
       })
 
+      vim.lsp.config('rust_analyzer', {
+        settings = {
+          ['rust-analyzer'] = {
+            diagnostics = {
+              enable = false,
+            },
+          },
+        },
+      })
+
       vim.lsp.config('ts_ls', {
         settings = {
           tsserver_file_preferences = {
@@ -227,12 +237,13 @@ return {
         },
       })
 
-      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls' }
+      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'rust_analyzer' }
 
       require('mason-tool-installer').setup {
         ensure_installed = {
           'lua-language-server',
           'stylua', -- for Lua formatting
+          'rust_analyzer',
         },
       }
 
