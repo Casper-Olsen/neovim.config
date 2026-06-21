@@ -110,6 +110,9 @@ return {
           -- or a suggestion from your LSP for this to activate.
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
+          -- Show diagnostics in float
+          map('<leader>cd', vim.diagnostic.open_float, '[C]ode [D]iagnostic')
+
           -- Hover information for symbol (vim.lsp.buf.hover()) -> K to show, KK to show and focus
 
           -- Hover signature - Use with L or LL (to focus signature)
