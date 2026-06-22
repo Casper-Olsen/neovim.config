@@ -9,10 +9,10 @@ return {
         vim.cmd 'TestNearest -strategy=sudo_vimux'
       end, { desc = '[T]est Nearest [T]mux [E]levated' })
 
+      vim.keymap.set('n', '<leader>tn', '<cmd>TestNearest -strategy=quickfix_dotnet<CR>', { desc = '[T]est [N]earest' })
       vim.keymap.set('n', '<leader>ttn', '<cmd>TestNearest<CR>', { desc = '[T]est [T]mux [N]earest' })
       vim.keymap.set('n', '<leader>ttf', '<cmd>TestFile<CR>', { desc = '[T]est [T]mux [F]ile' })
       vim.keymap.set('n', '<leader>ttl', '<cmd>TestLast<CR>', { desc = '[T]est [T]mux [L]ast' })
-      vim.keymap.set('n', '<leader>tqn', '<cmd>TestNearest -strategy=quickfix_dotnet<CR>', { desc = '[T]est [Q]uickfix [N]earest' })
 
       vim.g['test#csharp#runner'] = 'dotnettest'
       vim.g['test#strategy'] = 'vimux'
