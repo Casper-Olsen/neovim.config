@@ -11,6 +11,7 @@ return {
         'rust',
         'c_sharp',
         'diff',
+        'gitcommit',
         'html',
         'lua',
         'luadoc',
@@ -19,12 +20,13 @@ return {
         'query',
         'vim',
         'vimdoc',
+        'yaml',
       }
 
       require('nvim-treesitter').install(parsers)
 
       vim.api.nvim_create_autocmd('FileType', {
-        pattern = { 'sh', 'c', 'rust', 'cs', 'diff', 'html', 'lua', 'markdown', 'query', 'vim', 'help' },
+        pattern = { 'sh', 'c', 'rust', 'cs', 'diff', 'gitcommit', 'html', 'lua', 'markdown', 'query', 'vim', 'help', 'yaml', 'yaml.*' },
         callback = function()
           vim.treesitter.start()
         end,
