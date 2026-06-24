@@ -62,7 +62,6 @@ vim.keymap.set('n', '<leader>a', '<C-^>', { desc = '[A]lternate file' })
 vim.keymap.set('n', '<leader>dd', '"_dd', { desc = '[D]elete line to black hole register' })
 
 -- Build
-vim.keymap.set('n', '<leader>bd', function()
-  vim.cmd 'echo "🛠️ dotnet build - Running"'
-  vim.cmd 'DotnetBuildAsync'
-end, { desc = '[B]uild [D]otnet' })
+vim.keymap.set('n', '<leader>b', function()
+  vim.cmd 'BuildAsync'
+end, { desc = '[B]uild project' })

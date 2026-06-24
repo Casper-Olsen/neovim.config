@@ -24,6 +24,7 @@ require 'plugins.pack.undotree'
 require 'utils.dotnet-build'
 require 'utils.dotnet-test'
 require 'utils.dotnet-utils'
+require 'utils.build'
 require 'utils.make'
 
 -- vim: ts=2 sts=2 sw=2 et

@@ -64,7 +64,6 @@ return {
         { '<leader>a', group = '[A]lternate file' },
         { '<leader>u', group = '[U]ndo' },
         { '<leader>z', group = '[Z]en mode' },
-        { '<leader>b', group = '[B]uild' },
         { '<leader>n', group = '[N]eotree' },
       },
     },
