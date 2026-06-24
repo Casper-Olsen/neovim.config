@@ -71,43 +71,4 @@ local function dotnet_build_async()
   })
 end
 
-local function dotnet_restore_async()
-  local sln = utils.find_sln_file()
-  if not sln then
-    print(utils.command_icons.error .. ' No .sln file found')
-    return
-  end
-
-  local output_lines = {}
-
-  vim.fn.jobstart({ 'dotnet', 'restore', sln }, {
-    stdout_buffered = true,
-    stderr_buffered = true,
-
-    on_stdout = function(_, data)
-      if data then
-        vim.list_extend(output_lines, data)
-      end
-    end,
-
-    on_stderr = function(_, data)
-      if data then
-        vim.list_extend(output_lines, data)
-      end
-    end,
-
-    on_exit = function(_, code)
-      if code == 0 then
-        print(utils.command_icons.success .. ' Restore succeeded.')
-      else
-        print(utils.command_icons.error .. ' Restore failed with exit code ' .. code)
-        for _, line in ipairs(output_lines) do
-          print(line)
-        end
-      end
-    end,
-  })
-end
-
 vim.api.nvim_create_user_command('DotnetBuildAsync', dotnet_build_async, {})
-vim.api.nvim_create_user_command('DotnetRestoreAsync', dotnet_restore_async, {})
