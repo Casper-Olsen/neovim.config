@@ -14,15 +14,17 @@ return {
     },
   },
   {
-    -- Show function signature when typing
+    -- Configure LSP signature help, shown manually to avoid noisy automatic floats.
     'ray-x/lsp_signature.nvim',
     commit = 'b7ace9ddb1640ce266012a45a672dfdaedfa5ec6',
     event = 'InsertEnter',
     opts = {
       bind = true,
-      -- Show overloads while typing function arguments, but omit long
-      -- documentation and avoid triggering outside signature contexts.
-      floating_window = true,
+      -- Start with automatic signature floats hidden; <C-k> enables them while open
+      -- so the active parameter keeps updating as you type.
+      -- Omit long documentation when the manual signature window is shown.
+      floating_window = false,
+      toggle_key_flip_floatwin_setting = true,
       doc_lines = 0,
       always_trigger = false,
       check_completion_visible = true,
@@ -115,14 +117,30 @@ return {
 
           -- Hover information for symbol (vim.lsp.buf.hover()) -> K to show, KK to show and focus
 
-          -- Hover signature - Use with L or LL (to focus signature)
+          -- Show signature help for the current function call.
           map('L', function()
             vim.lsp.buf.signature_help()
           end, '[H]over [S]ignature')
 
-          vim.keymap.set({ 'i' }, '<C-e>', function()
+          -- Manually show or close the signature float in insert mode.
+          vim.keymap.set({ 'i' }, '<C-k>', function()
             require('lsp_signature').toggle_float_win()
-          end, { silent = true, noremap = true, desc = 'Close LSP signature window' })
+          end, { silent = true, noremap = true, desc = 'Toggle LSP signature window' })
+
+          -- Leaving insert mode toggles off any manually enabled signature float,
+          -- restoring the hidden default for the next InsertEnter.
+          local signature_reset_augroup = vim.api.nvim_create_augroup('manual-lsp-signature-reset', { clear = false })
+          vim.api.nvim_clear_autocmds { group = signature_reset_augroup, buffer = event.buf, event = 'InsertLeave' }
+          vim.api.nvim_create_autocmd('InsertLeave', {
+            buffer = event.buf,
+            group = signature_reset_augroup,
+            callback = function()
+              local signature_config = _G._LSP_SIG_CFG
+              if signature_config and signature_config.floating_window then
+                require('lsp_signature').toggle_float_win()
+              end
+            end,
+          })
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
