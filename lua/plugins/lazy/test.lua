@@ -12,7 +12,7 @@ return {
       vim.keymap.set('n', '<leader>tn', '<cmd>TestNearest -strategy=quickfix_dotnet<CR>', { desc = '[T]est [N]earest' })
       vim.keymap.set('n', '<leader>ttn', '<cmd>TestNearest<CR>', { desc = '[T]est [T]mux [N]earest' })
       vim.keymap.set('n', '<leader>ttf', '<cmd>TestFile<CR>', { desc = '[T]est [T]mux [F]ile' })
-      vim.keymap.set('n', '<leader>ttl', '<cmd>TestLast<CR>', { desc = '[T]est [T]mux [L]ast' })
+      vim.keymap.set('n', '<leader>tl', '<cmd>TestLast<CR>', { desc = '[T]est [L]ast' })
 
       vim.g['test#csharp#runner'] = 'dotnettest'
       vim.g['test#strategy'] = 'vimux'
