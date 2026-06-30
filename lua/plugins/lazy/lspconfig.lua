@@ -265,13 +265,30 @@ return {
         },
       })
 
-      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'rust_analyzer' }
+      vim.lsp.config('basedpyright', {
+        settings = {
+          basedpyright = {
+            analysis = {
+              autoSearchPaths = true,
+              diagnosticMode = 'openFilesOnly',
+              typeCheckingMode = 'standard',
+              useLibraryCodeForTypes = true,
+            },
+          },
+        },
+      })
+
+      vim.lsp.config('ruff', {})
+
+      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'rust_analyzer', 'basedpyright', 'ruff' }
 
       require('mason-tool-installer').setup {
         ensure_installed = {
           'lua-language-server',
           'stylua', -- for Lua formatting
           'rust_analyzer',
+          'basedpyright',
+          'ruff',
         },
       }
 
