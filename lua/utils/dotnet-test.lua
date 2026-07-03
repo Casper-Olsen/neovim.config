@@ -1,4 +1,5 @@
 local utils = require 'utils.dotnet-utils'
+local status = require 'utils.fidget-status'
 
 local M = {}
 
@@ -18,6 +19,14 @@ local function quickfix_text(text)
   end
 
   return text
+end
+
+local function command_text(cmd)
+  if type(cmd) == 'string' then
+    return quickfix_text(cmd)
+  end
+
+  return quickfix_text(table.concat(cmd, ' '))
 end
 
 local function add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg, user_data)
@@ -62,18 +71,14 @@ local function dotnet_test_quickfix_async(cmd)
   if not test_cmd then
     local sln = utils.find_sln_file()
     if not sln then
-      print(utils.command_icons.error .. ' No .sln file found')
+      status.notify('dotnet test', utils.command_icons.error .. ' No .sln file found', vim.log.levels.ERROR)
       return
     end
 
     test_cmd = { 'dotnet', 'test', sln }
   end
+  local test_status = status.start('dotnet test', 'Running: ' .. command_text(test_cmd))
   vim.fn.setqflist({}, 'r') -- clear quickfix first
-  if type(test_cmd) == 'string' then
-    print(utils.command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(test_cmd))
-  else
-    print(utils.command_icons.test .. ' dotnet test - Running: ' .. quickfix_text(table.concat(test_cmd, ' ')))
-  end
 
   local diagnostic_pattern = '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$'
   local stack_frame_pattern = '%s+at .- in (.-):line (%d+)'
@@ -354,7 +359,7 @@ local function dotnet_test_quickfix_async(cmd)
     end
   end
 
-  vim.fn.jobstart(test_cmd, {
+  local job_id = vim.fn.jobstart(test_cmd, {
     stdout_buffered = true,
     stderr_buffered = true,
 
@@ -380,12 +385,16 @@ local function dotnet_test_quickfix_async(cmd)
       end
 
       if code == 0 then
-        print(utils.command_icons.success .. ' Tests passed.')
+        test_status.finish(utils.command_icons.success .. ' Tests passed.', vim.log.levels.INFO)
       else
-        print(utils.command_icons.error .. ' Tests failed with exit code ' .. code)
+        test_status.finish(utils.command_icons.error .. ' Tests failed with exit code ' .. code, vim.log.levels.ERROR)
       end
     end,
   })
+
+  if job_id <= 0 then
+    test_status.finish(utils.command_icons.error .. ' Failed to start dotnet test', vim.log.levels.ERROR)
+  end
 end
 
 M.run = dotnet_test_quickfix_async
