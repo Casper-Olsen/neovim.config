@@ -5,7 +5,6 @@ local build_rules = {
     name = 'dotnet',
     find = utils.find_sln_file,
     run = function()
-      vim.cmd 'echo "🛠️ dotnet build - Running"'
       vim.cmd 'DotnetBuildAsync'
     end,
   },
