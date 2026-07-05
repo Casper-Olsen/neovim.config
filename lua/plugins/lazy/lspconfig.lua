@@ -232,22 +232,6 @@ return {
         filetypes = { 'c', 'cpp' },
       })
 
-      vim.lsp.config('rust_analyzer', {
-        settings = {
-          ['rust-analyzer'] = {
-            check = {
-              command = 'clippy',
-            },
-            diagnostics = {
-              enable = true,
-              experimental = {
-                enable = false,
-              },
-            },
-          },
-        },
-      })
-
       vim.lsp.config('ts_ls', {
         settings = {
           tsserver_file_preferences = {
@@ -280,13 +264,12 @@ return {
 
       vim.lsp.config('ruff', {})
 
-      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'rust_analyzer', 'basedpyright', 'ruff' }
+      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'basedpyright', 'ruff' }
 
       require('mason-tool-installer').setup {
         ensure_installed = {
           'lua-language-server',
           'stylua', -- for Lua formatting
-          'rust_analyzer',
           'basedpyright',
           'ruff',
         },
