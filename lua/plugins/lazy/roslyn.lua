@@ -16,13 +16,16 @@ return {
 
     vim.keymap.set('n', '<leader>rr', '<cmd>lsp restart<CR>', { desc = '[R]oslyn [R]estart' })
 
-    vim.keymap.set('n', '<leader>rt', '<cmd>Roslyn target<CR>', { desc = '[R]oslyn [T]arget' })
-
     vim.api.nvim_create_autocmd('FileType', {
-      group = vim.api.nvim_create_augroup('dotnet-build-keymaps', { clear = true }),
+      group = vim.api.nvim_create_augroup('dotnet-keymaps', { clear = true }),
       pattern = 'cs',
       callback = function(event)
         vim.keymap.set('n', '<leader>b', '<cmd>DotnetBuildAsync<CR>', { buffer = event.buf, desc = '[B]uild dotnet project' })
+        vim.keymap.set('n', '<leader>rt', '<cmd>Roslyn target<CR>', { buffer = event.buf, desc = '[R]oslyn [T]arget' })
+        vim.keymap.set('n', '<leader>tn', '<cmd>TestNearest -strategy=quickfix_dotnet<CR>', { buffer = event.buf, desc = '[T]est [N]earest' })
+        vim.keymap.set('n', '<leader>tdn', function()
+          require('utils.dotnet-dap').debug_nearest_test()
+        end, { buffer = event.buf, desc = '[T]est [D]ebug [N]earest' })
       end,
     })
 

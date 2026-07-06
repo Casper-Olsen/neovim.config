@@ -80,13 +80,6 @@ return {
       desc = '[D]ebug: [H]over value',
       mode = { 'n', 'v' },
     },
-    {
-      '<leader>tdn',
-      function()
-        require('utils.dotnet-dap').debug_nearest_test()
-      end,
-      desc = '[T]est [D]ebug [N]earest',
-    },
   },
   config = function()
     local dap = require 'dap'
