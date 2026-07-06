@@ -264,6 +264,14 @@ return {
 
       vim.lsp.config('ruff', {})
 
+      vim.lsp.config('roslyn', {
+        settings = {
+          ['csharp|formatting'] = {
+            dotnet_organize_imports_on_format = true,
+          },
+        },
+      })
+
       vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'basedpyright', 'ruff' }
 
       require('mason-tool-installer').setup {
