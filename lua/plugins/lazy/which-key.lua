@@ -54,6 +54,7 @@ return {
         { '<leader>t', group = '[T]oggle & [T]est' },
         { '<leader>tt', group = '[T]mux [T]est' },
         { '<leader>h', group = '[H]over', mode = { 'n', 'v' } },
+        { '<leader>l', group = '[L]SP' },
         { '<leader>m', group = '[M]arkdown' },
         { '<leader>p', group = '[P]inned' },
         { '<leader>v', group = '[V]isual' },

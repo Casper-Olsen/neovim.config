@@ -14,8 +14,6 @@ return {
       end,
     }
 
-    vim.keymap.set('n', '<leader>rr', '<cmd>lsp restart<CR>', { desc = '[R]oslyn [R]estart' })
-
     vim.api.nvim_create_autocmd('FileType', {
       group = vim.api.nvim_create_augroup('dotnet-keymaps', { clear = true }),
       pattern = 'cs',
