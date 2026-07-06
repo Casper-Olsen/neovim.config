@@ -18,6 +18,14 @@ return {
 
     vim.keymap.set('n', '<leader>rt', '<cmd>Roslyn target<CR>', { desc = '[R]oslyn [T]arget' })
 
+    vim.api.nvim_create_autocmd('FileType', {
+      group = vim.api.nvim_create_augroup('dotnet-build-keymaps', { clear = true }),
+      pattern = 'cs',
+      callback = function(event)
+        vim.keymap.set('n', '<leader>b', '<cmd>DotnetBuildAsync<CR>', { buffer = event.buf, desc = '[B]uild dotnet project' })
+      end,
+    })
+
     -- Roslyn uses LSP pull diagnostics (`textDocument/diagnostic`). After changing
     -- a C# symbol in one buffer, other already-open buffers can keep stale
     -- diagnostics until Neovim asks Roslyn for them again. In Neovim 0.12, use
