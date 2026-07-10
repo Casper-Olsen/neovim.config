@@ -2,6 +2,7 @@ local utils = require 'utils.dotnet-utils'
 local status = require 'utils.fidget-status'
 
 local M = {}
+local source_failure_details = {}
 
 local function strip_ansi(line)
   return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
@@ -27,6 +28,14 @@ local function command_text(cmd)
   end
 
   return quickfix_text(table.concat(cmd, ' '))
+end
+
+local function first_line(text)
+  if not text then
+    return nil
+  end
+
+  return vim.trim((text:gsub('\r\n', '\n'):match '([^\n]+)') or text)
 end
 
 local function add_dotnet_diagnostic(qf_list, seen, file, lnum, col, type, code, msg, user_data)
@@ -62,10 +71,126 @@ local function open_quickfix(mode, action)
   end
 end
 
+local function get_current_qf_item()
+  local qf = vim.fn.getqflist { title = 1, items = 1, idx = 0 }
+  if qf.title ~= 'dotnet test' then
+    return nil
+  end
+
+  local idx = qf.idx
+  if vim.bo.filetype == 'qf' then
+    idx = vim.fn.line '.'
+  end
+
+  return qf.items and qf.items[idx] or nil
+end
+
+local function dotnet_test_detail(item)
+  local user_data = item and item.user_data
+  if type(user_data) == 'table' and type(user_data.dotnet_test) == 'table' then
+    return user_data.dotnet_test.detail
+  end
+
+  return nil
+end
+
+local function stack_frame_location(line)
+  return line:match('%s+at .- in (.-):line (%d+)')
+end
+
+local function open_detail_window(title, detail)
+  local lines = vim.split(detail, '\n', { plain = true })
+  if #lines == 0 then
+    lines = { detail }
+  end
+
+  local width = 80
+  for index, line in ipairs(lines) do
+    if index > 500 then
+      break
+    end
+    width = math.max(width, vim.fn.strdisplaywidth(line))
+  end
+
+  local ui = vim.api.nvim_list_uis()[1] or { width = 120, height = 40 }
+  width = math.min(width + 2, math.floor(ui.width * 0.9))
+  local height = math.min(math.max(#lines, 1), math.floor(ui.height * 0.8))
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = buf })
+  vim.api.nvim_set_option_value('filetype', 'dotnet-test-output', { buf = buf })
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = math.floor((ui.width - width) / 2),
+    row = math.floor((ui.height - height) / 2),
+    border = 'rounded',
+    title = ' ' .. title .. ' ',
+    style = 'minimal',
+  })
+
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+
+  local function jump_to_frame()
+    local line = vim.api.nvim_get_current_line()
+    local file, lnum = stack_frame_location(line)
+    if not file or not lnum then
+      vim.notify('No source location on this line', vim.log.levels.WARN)
+      return
+    end
+
+    close()
+    vim.cmd('edit ' .. vim.fn.fnameescape(file))
+    pcall(vim.api.nvim_win_set_cursor, 0, { tonumber(lnum), 0 })
+    vim.cmd 'normal! zz'
+  end
+
+  vim.keymap.set('n', 'q', close, { buffer = buf, silent = true, desc = 'Close test failure' })
+  vim.keymap.set('n', '<Esc>', close, { buffer = buf, silent = true, desc = 'Close test failure' })
+  vim.keymap.set('n', '<CR>', jump_to_frame, { buffer = buf, silent = true, desc = 'Jump to stack frame' })
+  vim.keymap.set('n', 'gf', jump_to_frame, { buffer = buf, silent = true, desc = 'Jump to stack frame' })
+end
+
+local function show_current_failure(item)
+  local detail = dotnet_test_detail(item)
+
+  if not detail and vim.bo.filetype == 'qf' then
+    item = get_current_qf_item()
+    detail = dotnet_test_detail(item)
+  end
+
+  if not detail then
+    local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':p')
+    local details_by_line = source_failure_details[filename]
+    if details_by_line then
+      detail = details_by_line[vim.fn.line '.']
+    end
+  end
+
+  if not detail then
+    item = item or get_current_qf_item()
+    detail = dotnet_test_detail(item)
+  end
+
+  if not detail then
+    vim.notify('No dotnet test detail for this quickfix item', vim.log.levels.WARN)
+    return
+  end
+
+  open_detail_window((item and item.text) or 'dotnet test failure', detail)
+end
+
 -- Run `dotnet test` asynchronously and publish failures to the normal quickfix
--- list. Test failures are grouped by source file/line so quickfix navigation
--- jumps once per failing line. The dotnet_test Trouble mode renders multiline
--- text without Treesitter because failure output is not valid C#.
+-- list. Quickfix entries stay short and jumpable; the full failure output is
+-- stored in item.user_data and can be opened with :DotnetTestShowFailure.
 local function dotnet_test_quickfix_async(cmd)
   local test_cmd = cmd
   if not test_cmd then
@@ -77,8 +202,10 @@ local function dotnet_test_quickfix_async(cmd)
 
     test_cmd = { 'dotnet', 'test', sln }
   end
+
   local test_status = status.start('dotnet test', 'Running: ' .. command_text(test_cmd))
   vim.fn.setqflist({}, 'r') -- clear quickfix first
+  source_failure_details = {}
 
   local diagnostic_pattern = '^(.-)%((%d+),(%d+)%)%s*:%s*(%a+)%s+(%w+)%s*:%s*(.+)$'
   local stack_frame_pattern = '%s+at .- in (.-):line (%d+)'
@@ -100,6 +227,30 @@ local function dotnet_test_quickfix_async(cmd)
 
   local function test_display_name(test_name)
     return short_test_name(test_name):match '^[^%.]+%.(.+)$' or test_name
+  end
+
+  local function find_failure_frame(test_name, frames)
+    local frame = nil
+    local class_name = short_test_name(test_name):match '^([^%.]+)%.'
+    if class_name then
+      for _, candidate in ipairs(frames) do
+        if candidate.file and vim.fn.fnamemodify(candidate.file, ':t:r') == class_name then
+          frame = candidate
+          break
+        end
+      end
+    end
+
+    if not frame then
+      for _, candidate in ipairs(frames) do
+        if candidate.file and candidate.file:match '%.Tests[/\\]' then
+          frame = candidate
+          break
+        end
+      end
+    end
+
+    return frame or frames[1]
   end
 
   local function sort_quickfix()
@@ -192,8 +343,13 @@ local function dotnet_test_quickfix_async(cmd)
   local function add_failure_without_location(text)
     local fallback_file = fallback_location()
     local item = {
-      text = text,
+      text = quickfix_text(first_line(text) or text),
       type = 'E',
+      user_data = {
+        dotnet_test = {
+          detail = text,
+        },
+      },
     }
 
     if fallback_file then
@@ -216,28 +372,7 @@ local function dotnet_test_quickfix_async(cmd)
       return
     end
 
-    local frame = nil
-    local class_name = short_test_name(parser.current_test):match '^([^%.]+)%.'
-    if class_name then
-      for _, candidate in ipairs(parser.current_frames) do
-        if candidate.file and vim.fn.fnamemodify(candidate.file, ':t:r') == class_name then
-          frame = candidate
-          break
-        end
-      end
-    end
-
-    if not frame then
-      for _, candidate in ipairs(parser.current_frames) do
-        if candidate.file and candidate.file:match '%.Tests/' then
-          frame = candidate
-          break
-        end
-      end
-    end
-
-    frame = frame or parser.current_frames[1]
-
+    local frame = find_failure_frame(parser.current_test, parser.current_frames)
     local test_name = test_display_name(parser.current_test)
     local full_message = parser.current_message and ('FAILED ' .. test_name .. ': ' .. parser.current_message) or ('FAILED ' .. test_name)
     local summary = full_message
@@ -353,8 +488,13 @@ local function dotnet_test_quickfix_async(cmd)
         filename = group.filename,
         lnum = group.lnum,
         col = group.col,
-        text = text,
+        text = count > 1 and quickfix_text(string.format('[%d failures] %s', count, group.summaries[1])) or quickfix_text(group.summaries[1]),
         type = 'E',
+        user_data = {
+          dotnet_test = {
+            detail = text,
+          },
+        },
       }
     end
   end
@@ -381,6 +521,13 @@ local function dotnet_test_quickfix_async(cmd)
       if #parser.qf_list > 0 then
         sort_quickfix()
         set_quickfix(parser.qf_list, 'dotnet test')
+        for _, item in ipairs(parser.qf_list) do
+          local detail = dotnet_test_detail(item)
+          if detail and item.filename then
+            source_failure_details[item.filename] = source_failure_details[item.filename] or {}
+            source_failure_details[item.filename][item.lnum or 1] = detail
+          end
+        end
         open_quickfix 'dotnet_test'
       end
 
@@ -398,5 +545,24 @@ local function dotnet_test_quickfix_async(cmd)
 end
 
 M.run = dotnet_test_quickfix_async
+M.show_failure = show_current_failure
+
+vim.api.nvim_create_user_command('DotnetTestShowFailure', function()
+  show_current_failure()
+end, {})
+
+local qf_group = vim.api.nvim_create_augroup('DotnetTestQuickfix', { clear = true })
+vim.api.nvim_create_autocmd('FileType', {
+  group = qf_group,
+  pattern = 'qf',
+  callback = function(event)
+    local qf = vim.fn.getqflist { title = 1 }
+    if qf.title ~= 'dotnet test' then
+      return
+    end
+
+    vim.keymap.set('n', 'K', show_current_failure, { buffer = event.buf, silent = true, desc = 'Show dotnet test failure' })
+  end,
+})
 
 return M

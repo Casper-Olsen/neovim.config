@@ -1,11 +1,11 @@
 local function quickfix_mode()
   local qf = vim.fn.getqflist { title = 1 }
-  -- Dotnet test failures need a plain-text Trouble formatter.
+  -- Dotnet test failures use a dedicated mode for grouping/follow behavior.
   return qf.title == 'dotnet test' and 'dotnet_test' or 'quickfix'
 end
 
 --- Patch Trouble's follow behavior so dotnet test quickfix entries track the
---- current file group or failing line in the custom plain-text formatter.
+--- current file group or failing line.
 local function patch_dotnet_test_follow()
   local view = require 'trouble.view'
   local original_follow = view.follow
@@ -66,7 +66,7 @@ return {
     },
     modes = {
       -- Normal quickfix uses Treesitter highlighting for item text. Dotnet test
-      -- output points at .cs files, but the output itself is not valid C#.
+      -- summaries are plain text, not C# snippets.
       dotnet_test = {
         desc = 'dotnet test failures',
         source = 'qf.qflist',
@@ -78,8 +78,21 @@ return {
           { 'filename', format = '{file_icon} {filename} {count}' },
         },
         sort = { 'severity', 'filename', 'pos', 'message' },
-        -- Use {text}, not {text:ts}; test output is not valid C#.
+        -- Use {text}, not {text:ts}; test summaries are not valid C#.
         format = '{severity_icon|item.type:DiagnosticSignWarn} {pos} {text}',
+        keys = {
+          K = {
+            action = function(_, ctx)
+              local qf_item = ctx.item and ctx.item.item
+              if not qf_item then
+                return
+              end
+
+              require('utils.dotnet-test').show_failure(qf_item)
+            end,
+            desc = 'Show dotnet test failure',
+          },
+        },
       },
     },
   },
