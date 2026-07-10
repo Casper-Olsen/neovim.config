@@ -30,12 +30,125 @@ local function quickfix_text(text)
   return text
 end
 
-local function command_text(cmd)
-  if type(cmd) == 'string' then
-    return quickfix_text(cmd)
+local function status_text(text)
+  text = strip_ansi(text)
+  text = text:gsub('[\r\n\t]+', ' ')
+  text = text:gsub('%c+', ' ')
+  text = text:gsub('%s+', ' ')
+  text = vim.trim(text)
+
+  if #text > 96 then
+    text = text:sub(1, 93) .. '...'
   end
 
-  return quickfix_text(table.concat(cmd, ' '))
+  return text
+end
+
+local function test_target(cmd)
+  if type(cmd) == 'table' then
+    for _, part in ipairs(cmd) do
+      if part:match '%.sln$' or part:match '%.csproj$' then
+        return vim.fn.fnamemodify(part, ':t')
+      end
+    end
+  elseif type(cmd) == 'string' then
+    local target = cmd:match '([^%s"\']+%.csproj)' or cmd:match '([^%s"\']+%.sln)'
+    if target then
+      return vim.fn.fnamemodify(target, ':t')
+    end
+  end
+
+  return nil
+end
+
+local function test_filter(cmd)
+  if type(cmd) == 'table' then
+    for index, part in ipairs(cmd) do
+      local inline_filter = part:match '^%-%-filter[:=](.+)$'
+      if inline_filter then
+        return inline_filter
+      end
+
+      if part == '--filter' then
+        return cmd[index + 1]
+      end
+    end
+  elseif type(cmd) == 'string' then
+    return cmd:match '%-%-filter%s+"([^"]+)"'
+      or cmd:match "%-%-filter%s+'([^']+)'"
+      or cmd:match '%-%-filter%s+(%S+)'
+      or cmd:match '%-%-filter[:=]"([^"]+)"'
+      or cmd:match "%-%-filter[:=]'([^']+)'"
+      or cmd:match '%-%-filter[:=](%S+)'
+  end
+
+  return nil
+end
+
+local function short_filter(filter)
+  if not filter then
+    return nil
+  end
+
+  filter = vim.trim(filter):gsub('^["\']', ''):gsub('["\']$', '')
+  filter = filter:gsub('^FullyQualifiedName[~=]', '')
+  filter = filter:gsub('^Name[~=]', '')
+
+  local parts = vim.split(filter, '.', { plain = true })
+  if #parts > 2 then
+    return table.concat({ parts[#parts - 1], parts[#parts] }, '.')
+  end
+
+  return filter
+end
+
+local function test_start_message(cmd)
+  local target = test_target(cmd)
+  local filter = short_filter(test_filter(cmd))
+  local message = 'Running tests'
+
+  if target then
+    message = message .. ': ' .. target
+  end
+
+  if filter then
+    message = message .. ' (' .. filter .. ')'
+  end
+
+  return status_text(message)
+end
+
+local function test_result_summary(summary)
+  local failed, passed, skipped, total = summary:match 'Failed:%s+(%d+),%s+Passed:%s+(%d+),%s+Skipped:%s+(%d+),%s+Total:%s+(%d+)'
+  if not failed then
+    return nil
+  end
+
+  return {
+    failed = tonumber(failed) or 0,
+    passed = tonumber(passed) or 0,
+    skipped = tonumber(skipped) or 0,
+    total = tonumber(total) or 0,
+  }
+end
+
+local function add_test_result_summary(target, source)
+  if not source then
+    return
+  end
+
+  target.failed = target.failed + source.failed
+  target.passed = target.passed + source.passed
+  target.skipped = target.skipped + source.skipped
+  target.total = target.total + source.total
+end
+
+local function format_test_result_summary(summary)
+  if summary.total == 0 then
+    return nil
+  end
+
+  return string.format('Failed: %d, Passed: %d, Skipped: %d, Total: %d', summary.failed, summary.passed, summary.skipped, summary.total)
 end
 
 local function first_line(text)
@@ -222,7 +335,7 @@ local function dotnet_test_quickfix_async(cmd)
     test_cmd = { 'dotnet', 'test', sln }
   end
 
-  local test_status = status.start('dotnet test', 'Running: ' .. command_text(test_cmd))
+  local test_status = status.start('dotnet test', test_start_message(test_cmd), { notify_on_finish = false })
   vim.fn.setqflist({}, 'r') -- clear quickfix first
   source_failure_details = {}
 
@@ -238,6 +351,12 @@ local function dotnet_test_quickfix_async(cmd)
     run_error_message = nil,
     current_frames = {},
     current_failure_lines = {},
+    result_summary = {
+      failed = 0,
+      passed = 0,
+      skipped = 0,
+      total = 0,
+    },
   }
 
   local function short_test_name(test_name)
@@ -422,7 +541,9 @@ local function dotnet_test_quickfix_async(cmd)
   -- context until the next failure or process exit calls `flush_failure`.
   local function parse_line(line)
     line = strip_ansi(line)
-    if line:match '^%s*Failed!%s+%-%s+Failed:%s+%d+,%s+Passed:%s+%d+,%s+Skipped:%s+%d+,%s+Total:%s+%d+,' then
+    local result_summary = line:match '^%s*%w+!%s+%-%s+(Failed:%s+%d+,%s+Passed:%s+%d+,%s+Skipped:%s+%d+,%s+Total:%s+%d+)'
+    if result_summary then
+      add_test_result_summary(parser.result_summary, test_result_summary(result_summary))
       flush_failure()
       return
     end
@@ -550,10 +671,14 @@ local function dotnet_test_quickfix_async(cmd)
         open_quickfix 'dotnet_test'
       end
 
+      local result_summary = format_test_result_summary(parser.result_summary)
       if code == 0 then
-        test_status.finish(utils.command_icons.success .. ' Tests passed.', vim.log.levels.INFO)
+        test_status.finish(utils.command_icons.success .. ' ' .. (result_summary or 'Tests passed.'), vim.log.levels.INFO)
       else
-        test_status.finish(utils.command_icons.error .. ' Tests failed with exit code ' .. code, vim.log.levels.ERROR)
+        test_status.finish(
+          utils.command_icons.error .. ' ' .. (result_summary or ('Tests failed with exit code ' .. code)),
+          vim.log.levels.ERROR
+        )
       end
     end,
   })
