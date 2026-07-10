@@ -4,6 +4,14 @@ local status = require 'utils.fidget-status'
 local M = {}
 local source_failure_details = {}
 
+-- Applied buffer-locally when the dotnet test failure detail window opens.
+local detail_window_keymaps = {
+  { 'q', 'close', 'Close test failure' },
+  { '<Esc>', 'close', 'Close test failure' },
+  { '<CR>', 'jump_to_frame', 'Jump to stack frame' },
+  { 'gf', 'jump_to_frame', 'Jump to stack frame' },
+}
+
 local function strip_ansi(line)
   return line:gsub('\27%[[0-?]*[ -/]*[@-~]', '')
 end
@@ -114,7 +122,14 @@ local function open_detail_window(title, detail)
 
   local ui = vim.api.nvim_list_uis()[1] or { width = 120, height = 40 }
   width = math.min(width + 2, math.floor(ui.width * 0.9))
-  local height = math.min(math.max(#lines, 1), math.floor(ui.height * 0.8))
+  local display_height = 0
+  for _, line in ipairs(lines) do
+    display_height = display_height + math.max(1, math.ceil(vim.fn.strdisplaywidth(line) / math.max(width - 2, 1)))
+  end
+
+  local min_height = 16
+  local max_height = math.floor(ui.height * 0.6)
+  local height = math.min(math.max(display_height, min_height), max_height)
 
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = buf })
@@ -153,10 +168,14 @@ local function open_detail_window(title, detail)
     vim.cmd 'normal! zz'
   end
 
-  vim.keymap.set('n', 'q', close, { buffer = buf, silent = true, desc = 'Close test failure' })
-  vim.keymap.set('n', '<Esc>', close, { buffer = buf, silent = true, desc = 'Close test failure' })
-  vim.keymap.set('n', '<CR>', jump_to_frame, { buffer = buf, silent = true, desc = 'Jump to stack frame' })
-  vim.keymap.set('n', 'gf', jump_to_frame, { buffer = buf, silent = true, desc = 'Jump to stack frame' })
+  local actions = {
+    close = close,
+    jump_to_frame = jump_to_frame,
+  }
+
+  for _, keymap in ipairs(detail_window_keymaps) do
+    vim.keymap.set('n', keymap[1], actions[keymap[2]], { buffer = buf, silent = true, desc = keymap[3] })
+  end
 end
 
 local function show_current_failure(item)

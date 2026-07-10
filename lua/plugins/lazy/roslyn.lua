@@ -21,6 +21,7 @@ return {
         vim.keymap.set('n', '<leader>b', '<cmd>DotnetBuildAsync<CR>', { buffer = event.buf, desc = '[B]uild dotnet project' })
         vim.keymap.set('n', '<leader>rt', '<cmd>Roslyn target<CR>', { buffer = event.buf, desc = '[R]oslyn [T]arget' })
         vim.keymap.set('n', '<leader>tn', '<cmd>TestNearest -strategy=quickfix_dotnet<CR>', { buffer = event.buf, desc = '[T]est [N]earest' })
+        vim.keymap.set('n', '<leader>tf', '<cmd>DotnetTestShowFailure<CR>', { buffer = event.buf, desc = '[T]est [F]ailure' })
         vim.keymap.set('n', '<leader>tdn', function()
           require('utils.dotnet-dap').debug_nearest_test()
         end, { buffer = event.buf, desc = '[T]est [D]ebug [N]earest' })
