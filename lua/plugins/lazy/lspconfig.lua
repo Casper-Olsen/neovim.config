@@ -272,7 +272,7 @@ return {
         },
       })
 
-      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'basedpyright', 'ruff' }
+      vim.lsp.enable { 'clangd', 'ts_ls', 'lua_ls', 'basedpyright', 'ruff', 'terraformls' }
 
       require('mason-tool-installer').setup {
         ensure_installed = {
@@ -280,6 +280,7 @@ return {
           'stylua', -- for Lua formatting
           'basedpyright',
           'ruff',
+          'terraform-ls',
         },
       }
 
