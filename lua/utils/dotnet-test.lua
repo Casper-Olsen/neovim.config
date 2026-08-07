@@ -367,9 +367,75 @@ local function dotnet_test_quickfix_async(cmd)
     return short_test_name(test_name):match '^[^%.]+%.(.+)$' or test_name
   end
 
+  local function test_source_identity(test_name)
+    local test_name_without_arguments = test_name:match '^[^%(]+' or test_name
+    local parts = vim.split(test_name_without_arguments, '.', { plain = true })
+    if #parts < 2 then
+      return nil, nil
+    end
+
+    return parts[#parts - 1], parts[#parts]
+  end
+
+  local function escape_lua_pattern(text)
+    return text:gsub('([%(%)%.%%%+%-%*%?%[%]%^%$])', '%%%1')
+  end
+
+  local function test_target_dir(cmd)
+    local target = nil
+    if type(cmd) == 'table' then
+      for _, part in ipairs(cmd) do
+        if part:match '%.sln$' or part:match '%.csproj$' then
+          target = part
+          break
+        end
+      end
+    elseif type(cmd) == 'string' then
+      target = cmd:match '([^%s"\']+%.csproj)' or cmd:match '([^%s"\']+%.sln)'
+    end
+
+    if target then
+      return vim.fn.fnamemodify(target, ':p:h')
+    end
+
+    return vim.fn.getcwd()
+  end
+
+  local function find_test_source_location(test_name)
+    local class_name, method_name = test_source_identity(test_name)
+    if not class_name or not method_name then
+      return nil
+    end
+
+    local root = test_target_dir(test_cmd)
+    local files = vim.fn.globpath(root, '**/' .. class_name .. '.cs', false, true)
+    local fallback_file = nil
+
+    for _, file in ipairs(files) do
+      if vim.fn.filereadable(file) == 1 then
+        fallback_file = fallback_file or file
+        local ok, lines = pcall(vim.fn.readfile, file)
+        if ok then
+          local method_pattern = '%f[%w_]' .. escape_lua_pattern(method_name) .. '%f[^%w_]'
+          for lnum, line in ipairs(lines) do
+            if line:match(method_pattern) then
+              return { file = file, lnum = lnum }
+            end
+          end
+        end
+      end
+    end
+
+    if fallback_file then
+      return { file = fallback_file, lnum = 1 }
+    end
+
+    return nil
+  end
+
   local function find_failure_frame(test_name, frames)
     local frame = nil
-    local class_name = short_test_name(test_name):match '^([^%.]+)%.'
+    local class_name = test_source_identity(test_name)
     if class_name then
       for _, candidate in ipairs(frames) do
         if candidate.file and vim.fn.fnamemodify(candidate.file, ':t:r') == class_name then
@@ -388,7 +454,7 @@ local function dotnet_test_quickfix_async(cmd)
       end
     end
 
-    return frame or frames[1]
+    return frame or frames[1] or find_test_source_location(test_name)
   end
 
   local function sort_quickfix()
