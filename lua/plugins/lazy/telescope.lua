@@ -81,6 +81,7 @@ return {
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<leader>ff', function()
         builtin.lsp_document_symbols {
+          symbol_width = math.floor(vim.o.columns * 0.8),
           symbols = {
             'Function',
             'Method',
