@@ -105,7 +105,17 @@ return {
             group_index = 0,
           },
           { name = 'copilot', group_index = 0 },
-          { name = 'nvim_lsp' },
+          {
+            name = 'nvim_lsp',
+            -- Filter out snippets ONLY when writing Rust code
+            entry_filter = function(entry)
+              if vim.bo.filetype == 'rust' then
+                local types = require 'cmp.types'
+                return entry:get_kind() ~= types.lsp.CompletionItemKind.Snippet
+              end
+              return true -- Keep snippets enabled for all other languages
+            end,
+          },
           { name = 'luasnip' },
           { name = 'path' },
         },
