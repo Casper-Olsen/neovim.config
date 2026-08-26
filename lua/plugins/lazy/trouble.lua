@@ -65,6 +65,18 @@ return {
       scratch = false,
     },
     modes = {
+      -- A single build diagnostic has no useful list to browse. Jump straight to
+      -- it instead of leaving the cursor on Trouble's file-group row.
+      dotnet_build = {
+        desc = 'dotnet build diagnostics',
+        source = 'qf.qflist',
+        auto_jump = true,
+        groups = {
+          { 'filename', format = '{file_icon} {filename} {count}' },
+        },
+        sort = { 'severity', 'filename', 'pos', 'message' },
+        format = '{severity_icon|item.type:DiagnosticSignWarn} {text:ts} {pos}',
+      },
       -- Normal quickfix uses Treesitter highlighting for item text. Dotnet test
       -- summaries are plain text, not C# snippets.
       dotnet_test = {

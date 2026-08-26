@@ -58,7 +58,7 @@ local function dotnet_build_async()
           items = qf_list,
         })
 
-        vim.cmd 'Trouble quickfix'
+        vim.cmd 'Trouble dotnet_build'
       end
       if code == 0 then
         if #qf_list == 0 then
