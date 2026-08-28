@@ -11,5 +11,7 @@ return {
     }
 
     vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
+
+    -- Use CTRL+p show a preview of the file
   end,
 }
